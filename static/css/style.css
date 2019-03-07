@@ -1,0 +1,22 @@
+body {
+  font-size: 14px;
+  padding-top: 5rem;
+}
+.starter-template {
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+.table {
+  white-space: nowrap;
+  font-size: 14px;
+}
+.table-scroll {
+  display: block;
+  overflow: auto;
+}
+.sm-table {
+  display: inline-table;
+}
+.option-table {
+  display: inline-table;
+}
