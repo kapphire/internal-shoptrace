@@ -45,3 +45,20 @@ class Inventory(models.Model):
 
     def __str__(self):
         return str(self.qty)
+
+
+class SchedulerLookUp(models.Model):
+    name = models.CharField(max_length=2000)
+    number = models.IntegerField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
+
+class SchedulerTestRecord(models.Model):
+    number = models.IntegerField()
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return str(self.number)

@@ -11,6 +11,7 @@ from links.models import (
     Link,
     Product,
     Inventory,
+    SchedulerTestRecord
 )
 from links.handler import parse_product
 
@@ -18,6 +19,7 @@ PROGRESS_TYPE = (
     ('progress', 'progress'),
     ('done', 'done'),
 )
+ctn = 0
 
 def task_get_inventory(link):
     products = parse_product(link.link)
@@ -94,3 +96,13 @@ def task_fetch_link_from_firebase(self):
             link.save()
         except IntegrityError:
             continue
+
+
+@shared_task(bind=True)
+def task_test_scheduler(self):
+    obj = SchedulerTestRecord.objects.last()
+    if not obj:
+        SchedulerTestRecord.objects.create(number=1)
+    else:
+        number = obj.number + 1
+        SchedulerTestRecord.objects.create(number=number)
