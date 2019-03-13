@@ -25,7 +25,7 @@ app.conf.beat_schedule = {
     },
     # 'test_scheduler': {
     #     'task': 'links.tasks.task_test_scheduler',
-    #     'schedule': 60.0,
-    #     'options': {'queue': 'inventory', 'expires': 59.0}
+    #     'schedule': 10.0,
+    #     'options': {'queue': 'inventory', 'expires': 9.0}
     # }
 }

@@ -50,6 +50,13 @@ def task_get_inventory_from_type(self, ids):
 
 @shared_task(bind=True)
 def task_start_get_inventory(self):
+    obj = SchedulerTestRecord.objects.last()
+    if not obj:
+        SchedulerTestRecord.objects.create(number=1, name='task_start_get_inventory')
+    else:
+        number = obj.number + 1
+        SchedulerTestRecord.objects.create(number=number, name='task_start_get_inventory')
+
     todos = Link.objects.filter(state=dict(PROGRESS_TYPE)['progress'])
     
     if todos.exists():
@@ -64,6 +71,13 @@ def task_start_get_inventory(self):
 
 @shared_task(bind=True)
 def task_fetch_link_from_firebase(self):
+    obj = SchedulerTestRecord.objects.last()
+    if not obj:
+        SchedulerTestRecord.objects.create(number=1, name='task_fetch_link_from_firebase')
+    else:
+        number = obj.number + 1
+        SchedulerTestRecord.objects.create(number=number, name='task_fetch_link_from_firebase')
+
     links = list()
     unis = list()
     firebase = pyrebase.initialize_app(settings.FIREBASE_CONFIG)
@@ -98,11 +112,15 @@ def task_fetch_link_from_firebase(self):
             continue
 
 
-@shared_task(bind=True)
-def task_test_scheduler(self):
-    obj = SchedulerTestRecord.objects.last()
-    if not obj:
-        SchedulerTestRecord.objects.create(number=1)
-    else:
-        number = obj.number + 1
-        SchedulerTestRecord.objects.create(number=number)
+# @shared_task(bind=True)
+# def task_test_scheduler(self):
+#     for i in range(0, 9):
+#         current_app.send_task(
+#             'links.tasks.task_checker',
+#             queue='inventory',
+#         )
+    
+
+# @shared_task(bind=True)
+# def task_checker(self):
+#     pass

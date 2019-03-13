@@ -58,6 +58,7 @@ class SchedulerLookUp(models.Model):
 
 class SchedulerTestRecord(models.Model):
     number = models.IntegerField()
+    name = models.CharField(max_length=50, blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
