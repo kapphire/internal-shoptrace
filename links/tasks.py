@@ -21,7 +21,9 @@ PROGRESS_TYPE = (
 )
 ctn = 0
 
-def task_get_inventory(link):
+@shared_task(bind=True)
+def task_get_inventory(self, pk):
+    link = Link.objects.get(pk=pk)
     products = parse_product(link.link)
     for product in products:
         qs = Product.objects.filter(identity=product['identity'])
@@ -45,7 +47,12 @@ def task_get_inventory_from_type(self, ids):
         link = Link.objects.get(pk=pk)
         link.state = dict(PROGRESS_TYPE)['progress']
         link.save()
-        task_get_inventory(link)
+        current_app.send_task(
+            'links.tasks.task_get_inventory',
+            args=(link.pk, ),
+            queue='inventory',
+        )
+        # task_get_inventory(link)
 
 
 @shared_task(bind=True)
@@ -66,7 +73,12 @@ def task_start_get_inventory(self):
     links.update(state=dict(PROGRESS_TYPE)['progress'])
 
     for link in links:
-        task_get_inventory(link)
+        current_app.send_task(
+            'links.tasks.task_get_inventory',
+            args=(link.pk, ),
+            queue='inventory',
+        )
+        # task_get_inventory(link)
 
 
 @shared_task(bind=True)
