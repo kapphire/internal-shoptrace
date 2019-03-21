@@ -3,6 +3,7 @@ from .models import (
     Link,
     Product,
     Inventory,
+    SchedulerLookUp,
     SchedulerRecord,
     TypeLinkRecord,
 )
@@ -11,5 +12,6 @@ from .models import (
 admin.site.register(Link)
 admin.site.register(Product)
 admin.site.register(Inventory)
+admin.site.register(SchedulerLookUp)
 admin.site.register(SchedulerRecord)
 admin.site.register(TypeLinkRecord)

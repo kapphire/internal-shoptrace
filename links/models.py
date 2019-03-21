@@ -19,8 +19,6 @@ class Link(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     state = models.CharField(max_length=10, blank=True, null=True)
-
-    record = models.ForeignKey('links.SchedulerRecord', on_delete=models.CASCADE, blank=True, null=True)
     insert = models.ForeignKey('links.TypeLinkRecord', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):
@@ -61,6 +59,7 @@ class SchedulerLookUp(models.Model):
 class SchedulerRecord(models.Model):
     name = models.CharField(max_length=50)
     created = models.DateTimeField(auto_now_add=True)
+    links = models.ManyToManyField('links.Link', blank=True)
 
     def __str__(self):
         return str(self.name)

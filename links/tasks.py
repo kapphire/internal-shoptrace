@@ -27,9 +27,16 @@ PROGRESS_TYPE = (
     ('done', 'done'),
 )
 
+MODEL_MAPPING = {
+    'TypeLinkRecord': TypeLinkRecord,
+    'SchedulerRecord': SchedulerRecord,
+    'SchedulerLookUp': SchedulerLookUp
+}
+
 @shared_task(bind=True)
-def task_get_inventory(self, pk):
+def task_get_inventory(self, pk, record_pk, model):
     link = Link.objects.get(pk=pk)
+    record = MODEL_MAPPING[model].objects.get(pk=record_pk)
     products = parse_product(link.link)
     for product in products:
         qs = Product.objects.filter(identity=product['identity'])
@@ -43,23 +50,27 @@ def task_get_inventory(self, pk):
         else:
             obj = qs.first()
         inventory = Inventory.objects.create(qty=product['quantity'], product=obj)
-        link.state = dict(PROGRESS_TYPE)['done']
+        link.state = dict(PROGRESS_TYPE)['done']            
         link.save()
+        if model == 'SchedulerRecord':
+            record.links.add(link)
 
 
 @shared_task(bind=True)
 def task_get_inventory_from_type(self, pk):
     record = TypeLinkRecord.objects.get(pk=pk)
-    cnt = record.link_set.count()
+    model = record._meta.model.__name__
     
     for link in record.link_set.all():
         link.state = dict(PROGRESS_TYPE)['progress']
         link.save()
         current_app.send_task(
             'links.tasks.task_get_inventory',
-            args=(link.pk, ),
+            args=(link.pk, record.pk, model),
             queue='inventory',
         )
+
+    cnt = record.link_set.count()
     notify.send(
         sender=record,
         recipient=user,
@@ -71,14 +82,16 @@ def task_get_inventory_from_type(self, pk):
 @shared_task(bind=True)
 def task_start_get_inventory(self):
     todos = Link.objects.filter(state=dict(PROGRESS_TYPE)['progress'])
-    record = SchedulerLookUp.objects.create(name='Get inventories from link')
-    notify.send(
-        sender=record,
-        recipient=user,
-        verb=f'Getting inventories from link',
-        description=f'Getting inventories from link',
-    )
+    record = SchedulerRecord.objects.create(name='Get inventories from link')
+    model = record._meta.model.__name__
+    
     if todos.exists():
+        notify.send(
+            sender=record,
+            recipient=user,
+            verb=f'Start getting inventory task skipped',
+            description=f'Start getting inventory task skipped.',
+        )
         return False
 
     links = Link.objects.all()
@@ -87,9 +100,16 @@ def task_start_get_inventory(self):
     for link in links:
         current_app.send_task(
             'links.tasks.task_get_inventory',
-            args=(link.pk, ),
+            args=(link.pk, record.pk, model),
             queue='inventory',
         )
+    cnt = links.count()
+    notify.send(
+        sender=record,
+        recipient=user,
+        verb=f'</b>{cnt}</b> Links are scraped',
+        description=f'</b>{cnt}</b> Links are scraped',
+    )
 
 
 @shared_task(bind=True)
@@ -124,8 +144,9 @@ def task_fetch_link_from_firebase(self):
     ctn = 0
     for link in links:
         try:
-            link = Link(**link, link_type='fetch', record=record)
+            link = Link(**link, link_type='fetch')
             link.save()
+            record.links.add(link)
             ctn += 1
         except IntegrityError:
             continue

@@ -14,4 +14,5 @@ urlpatterns = [
     path('fetch/', views.GetPeriodLinkView.as_view(), name='period-link-add'),
     path('scheduler-record/', views.SchedulerRecordListView.as_view(), name='scheduler-record-list'),
     path('scheduler-record/<int:pk>/', views.SchedulerRecordDetailView.as_view(), name='scheduler-record-detail'),
+    path('scraper-record/', views.ScraperRecordListView.as_view(), name='scraper-record-list'),
 ]

@@ -11,6 +11,7 @@ from .models import (
     Link,
     Product,
     Inventory,
+    SchedulerLookUp,
     SchedulerRecord,
     TypeLinkRecord,
 )
@@ -18,6 +19,7 @@ from .tables import (
     LinkTable,
     ProductTable,
     InventoryTable,
+    ScraperRecordTable,
     SchedulerRecordTable,
     TypeLinkRecordTable,
 )
@@ -98,6 +100,14 @@ class SchedulerRecordListView(SingleTableView):
         return SchedulerRecord.objects.all()
 
 
+class ScraperRecordListView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = ScraperRecordTable
+
+    def get_queryset(self):
+        return SchedulerLookUp.objects.all()
+
+
 class SchedulerRecordDetailView(SingleTableView):
     template_name = 'links/list.html'
     table_class = LinkTable
@@ -105,9 +115,9 @@ class SchedulerRecordDetailView(SingleTableView):
     def get_queryset(self):
         pk = self.kwargs.get('pk')
         record = get_object_or_404(SchedulerRecord, pk=pk)
-        if not record.link_set.all():
+        if not record.links.all():
             return Link.objects.none()
-        return record.link_set.all()
+        return record.links.all()
 
 
 class LinkInsertView(FormView):
