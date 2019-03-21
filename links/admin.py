@@ -3,11 +3,13 @@ from .models import (
     Link,
     Product,
     Inventory,
-    SchedulerTestRecord
+    SchedulerRecord,
+    TypeLinkRecord,
 )
 # Register your models here.
 
 admin.site.register(Link)
 admin.site.register(Product)
 admin.site.register(Inventory)
-admin.site.register(SchedulerTestRecord)
+admin.site.register(SchedulerRecord)
+admin.site.register(TypeLinkRecord)

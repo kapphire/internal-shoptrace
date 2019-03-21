@@ -7,12 +7,28 @@ from django.urls import reverse_lazy
 from django_tables2 import SingleTableView
 
 from .forms import LinkInsertForm, GetPeriodLinkForm
-from .models import Link, Product, Link, Inventory
+from .models import (
+    Link,
+    Product,
+    Inventory,
+    SchedulerRecord,
+    TypeLinkRecord,
+)
 from .tables import (
     LinkTable,
     ProductTable,
     InventoryTable,
+    SchedulerRecordTable,
+    TypeLinkRecordTable,
 )
+
+class AllLinkListView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = LinkTable
+
+    def get_queryset(self):
+        return Link.objects.all()
+
 
 class TypeLinkListView(SingleTableView):
     template_name = 'links/list.html'
@@ -20,6 +36,26 @@ class TypeLinkListView(SingleTableView):
 
     def get_queryset(self):
         return Link.objects.filter(link_type='insert')
+
+
+class TypeLinkHistoryListView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = TypeLinkRecordTable
+
+    def get_queryset(self):
+        return TypeLinkRecord.objects.all()
+
+
+class TypeLinkHistoryDetailView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = LinkTable
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+        record = get_object_or_404(TypeLinkRecord, pk=pk)
+        if not record.link_set.all():
+            return Link.objects.none()
+        return record.link_set.all()
 
 
 class PeriodLinkListView(SingleTableView):
@@ -54,6 +90,26 @@ class InventoryListView(SingleTableView):
         return product.inventory_set.all()
 
 
+class SchedulerRecordListView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = SchedulerRecordTable
+
+    def get_queryset(self):
+        return SchedulerRecord.objects.all()
+
+
+class SchedulerRecordDetailView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = LinkTable
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+        record = get_object_or_404(SchedulerRecord, pk=pk)
+        if not record.link_set.all():
+            return Link.objects.none()
+        return record.link_set.all()
+
+
 class LinkInsertView(FormView):
     template_name = 'links/link_insert.html'
     form_class = LinkInsertForm
@@ -61,17 +117,17 @@ class LinkInsertView(FormView):
 
     def form_valid(self, form):
         links = form.cleaned_data['links'].splitlines()
-        ids = list()
+        record = TypeLinkRecord.objects.create()
+
         for link in links:
             try:
-                link = Link(link=link, link_type='insert')
+                link = Link(link=link, link_type='insert', insert=record)
                 link.save()
-                ids.append(link.pk)
             except IntegrityError:
                 continue
         current_app.send_task(
             'links.tasks.task_get_inventory_from_type',
-            args=(ids,),
+            args=(record.pk,),
             queue='inventory',
         )
         return super().form_valid(form)

@@ -20,6 +20,9 @@ class Link(models.Model):
     updated = models.DateTimeField(auto_now=True)
     state = models.CharField(max_length=10, blank=True, null=True)
 
+    record = models.ForeignKey('links.SchedulerRecord', on_delete=models.CASCADE, blank=True, null=True)
+    insert = models.ForeignKey('links.TypeLinkRecord', on_delete=models.CASCADE, blank=True, null=True)
+
     def __str__(self):
         return self.link
 
@@ -48,18 +51,23 @@ class Inventory(models.Model):
 
 
 class SchedulerLookUp(models.Model):
-    name = models.CharField(max_length=2000)
-    number = models.IntegerField()
+    name = models.CharField(max_length=50)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
 
 
-class SchedulerTestRecord(models.Model):
-    number = models.IntegerField()
-    name = models.CharField(max_length=50, blank=True, null=True)
+class SchedulerRecord(models.Model):
+    name = models.CharField(max_length=50)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return str(self.number)
+        return str(self.name)
+
+
+class TypeLinkRecord(models.Model):
+    created = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.created.strftime('%m/%d/%Y')

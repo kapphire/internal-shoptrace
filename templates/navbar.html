@@ -1,4 +1,31 @@
 {% load static %}
+{% load static notifications_tags %}
+
+<script src="{% static 'notifications/notify.js' %}" type="text/javascript"></script>
+
+<script>
+    function custom_notification_list(data) {
+        var menus = document.getElementsByClassName(notify_menu_class);
+        if (menus) {
+            var messages = data.unread_list.map(function (item) {
+                var message = "";
+                if(typeof item.verb !== 'undefined'){
+                    message = message + " " + item.verb;
+                }
+                if(typeof item.target !== 'undefined'){
+                    message = message + " " + item.target;
+                }
+                return '<li>' + message + '</li>';
+            }).join('')
+
+            for (var i = 0; i < menus.length; i++){
+                menus[i].innerHTML = messages;
+            }
+        }
+    }
+</script>
+{% register_notify_callbacks callbacks='fill_notification_badge,custom_notification_list' fetch=20 refresh_period=5 badge_class='badge badge-secondary' %}
+
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <a class="navbar-brand" href="">Internal Shoptrace</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
@@ -7,7 +34,13 @@
     <div class="collapse navbar-collapse" id="navbarsExampleDefault">
         <ul class="navbar-nav mr-auto">
             <li class="nav-item">
-                <a class="nav-link" href="{% url 'links:type-link-add' %}">Add Link<span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="{% url 'links:all-link-list' %}">All Links<span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'links:type-link-add' %}">Add Link</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'links:type-link-history-list' %}">Add Link History</a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'links:type-link-list' %}">Added Links</a>
@@ -17,6 +50,21 @@
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'links:period-link-list' %}">Fetched Links</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{% url 'links:scheduler-record-list' %}">Scheduler Records</a>
+            </li>
+            <li class="nav-item">
+                <div class="dropdown">
+                    <button class="btn" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        notifications {% live_notify_badge badge_class='badge badge-secondary' %}
+                    </button>
+                    <div class="dropdown-menu notification-content" aria-labelledby="notificationButton">
+                        <a href="{% url 'notifications:unread' %}">
+                            {% live_notify_list %}
+                        </a>
+                    </div>
+                </div>
             </li>
         </ul>
     </div>

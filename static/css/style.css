@@ -20,3 +20,12 @@ body {
 .option-table {
   display: inline-table;
 }
+.navbar-nav li {
+  padding: 5px 30px 5px 30px;
+}
+.live_notify_list li {
+  padding: 0px;
+}
+.notification-content {
+  width: 250px;
+}

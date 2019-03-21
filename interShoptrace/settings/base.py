@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'users',
     'links',
     # External packages
+    'notifications',
     'django_tables2',
     'crispy_forms',
 ]
