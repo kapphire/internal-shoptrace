@@ -10,7 +10,7 @@ class Link(models.Model):
         (FETCH, FETCH),
     )
 
-    link = models.CharField(max_length=2000, unique=True)
+    link = models.CharField(max_length=2000, unique=True, db_index=True)
     key = models.CharField(blank=True, null=True, max_length=50)
     sub_key = models.CharField(blank=True, null=True, max_length=50)
     pub = models.CharField(blank=True, null=True, max_length=50)
@@ -26,9 +26,9 @@ class Link(models.Model):
 
 
 class Product(models.Model):
-    identity = models.CharField(max_length=100, unique=True)
-    name = models.CharField(max_length=100)
-    vendor = models.CharField(max_length=100)
+    identity = models.CharField(max_length=100, unique=True, db_index=True)
+    name = models.CharField(max_length=1000)
+    vendor = models.CharField(max_length=500)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 

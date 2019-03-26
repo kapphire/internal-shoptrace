@@ -1,4 +1,5 @@
 from __future__ import absolute_import, unicode_literals
+import time
 import pyrebase
 from dateutil.parser import parse
 from celery import current_app, shared_task
@@ -50,10 +51,10 @@ def task_get_inventory(self, pk, record_pk, model):
         else:
             obj = qs.first()
         inventory = Inventory.objects.create(qty=product['quantity'], product=obj)
-        link.state = dict(PROGRESS_TYPE)['done']            
-        link.save()
         if model == 'SchedulerRecord':
             record.links.add(link)
+    link.state = dict(PROGRESS_TYPE)['done']            
+    link.save()
 
 
 @shared_task(bind=True)
@@ -61,7 +62,11 @@ def task_get_inventory_from_type(self, pk):
     record = TypeLinkRecord.objects.get(pk=pk)
     model = record._meta.model.__name__
     
+    reg = 0
     for link in record.link_set.all():
+        reg += 1
+        if not reg % 4:
+            time.sleep(8)
         link.state = dict(PROGRESS_TYPE)['progress']
         link.save()
         current_app.send_task(
@@ -96,8 +101,12 @@ def task_start_get_inventory(self):
 
     links = Link.objects.all()
     links.update(state=dict(PROGRESS_TYPE)['progress'])
-
+    reg = 0
     for link in links:
+        reg += 1
+        if not reg % 4:
+            time.sleep(8)
+        print(link.link, '==============')
         current_app.send_task(
             'links.tasks.task_get_inventory',
             args=(link.pk, record.pk, model),
