@@ -33,21 +33,21 @@ body {
 	font: 10px sans-serif;
 }
 #product-chart {
-  background-color: #F1F3F3;
+  background-color: #f8f9fa;
 }
 
 .axis path,
 .axis line {
   fill: none;
-  stroke: rgb(10, 96, 139);
+  stroke: #ebedf2;
   stroke-width: 2px;
   shape-rendering: crispEdges;
 }
 
 .line {
   fill: none;
-  stroke: #25d262;
-  stroke-width: 3px;
+  stroke: rgb(175,216,248);
+  stroke-width: 2px;
 }
 
 .overlay {
@@ -57,7 +57,7 @@ body {
 
 .focus circle {
   fill: rgb(248, 250, 250);
-  stroke: red;
+  stroke: rgb(237,194,64);
   stroke-width: 3px;
 }
   

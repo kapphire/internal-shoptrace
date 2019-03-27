@@ -85,7 +85,7 @@
             // Scale the range of the data
             x.domain(d3.extent(data, function(d) { return d.Date; }));
             y.domain([0, d3.max(data, function(d) {
-                return Math.max(d.Quantity); })]);
+                return Math.max(d.Quantity) + Math.max(d.Quantity) / 3; })]);
             // add the X gridlines
             svg.append("g")			
                 .attr("class", "grid")
@@ -119,7 +119,7 @@
                         "translate(" + (width/2) + " ," + (height + margin.top + 20) + ")")
                 .style("text-anchor", "middle")
                 .text("Time")
-                .attr("fill", "red")                
+                .attr("fill", "#ef02db")                
                 .style("font-size", "15")
                 .style("font-weight", "bold");
 
@@ -136,7 +136,7 @@
                 .attr("dy", "1em")
                 .style("text-anchor", "middle")
                 .text("Value")
-                .attr("fill", "red")
+                .attr("fill", "#ef02db")
                 .text("Quantity")
                 .style("font-size", "15")
                 .style("font-weight", "bold");
@@ -160,7 +160,7 @@
 
             focus.append("text")
                 .attr("x", 15)
-                .attr("fill", "red")
+                .attr("fill", "#dc3545")
                 .attr("dy", "1.31em");
 
             svg.append("rect")

@@ -106,7 +106,6 @@ def task_start_get_inventory(self):
         reg += 1
         if not reg % 4:
             time.sleep(8)
-        print(link.link, '==============')
         current_app.send_task(
             'links.tasks.task_get_inventory',
             args=(link.pk, record.pk, model),
