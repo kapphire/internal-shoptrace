@@ -167,10 +167,11 @@
             focus.append("text")
                 .attr("x", 15)
                 .attr("fill", "#dc3545")
-                .attr("dy", "1.31em");
+                .attr("dy", "1.5em")
+                .attr("dx", "-4em");
 
             svg.append("rect")
-                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .attr("transform", "translate(" + margin.right + "," + margin.top + ")")
                 .attr("class", "overlay")
                 .attr("width", width)
                 .attr("height", height)
