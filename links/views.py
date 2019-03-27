@@ -2,7 +2,9 @@ from celery import current_app
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.views.generic.edit import FormView
+from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse_lazy
+from django.http import JsonResponse
 
 from django_tables2 import SingleTableView
 
@@ -154,3 +156,20 @@ class GetPeriodLinkView(FormView):
             queue='inventory',
         )
         return super().form_valid(form)
+
+
+@csrf_exempt
+def ProductInventory(request):
+    response = dict()
+    if request.is_ajax():
+        product_id = request.POST['id']
+        product = Product.objects.get(pk=product_id)        
+        inventories = product.inventory_set.all()
+        response[product.name] = list()
+        for inventory in inventories:
+            elem = dict()
+            elem['Date'] = inventory.created.strftime('%Y-%m-%d %H:%M')
+            elem['Quantity'] = inventory.qty
+            response[product.name].append(elem)
+    
+    return JsonResponse(response, safe=False)

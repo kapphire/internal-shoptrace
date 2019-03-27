@@ -29,3 +29,46 @@ body {
 .notification-content {
   width: 250px;
 }
+.axis {
+	font: 10px sans-serif;
+}
+#product-chart {
+  background-color: #F1F3F3;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: rgb(10, 96, 139);
+  stroke-width: 2px;
+  shape-rendering: crispEdges;
+}
+
+.line {
+  fill: none;
+  stroke: #6F257F;
+  stroke-width: 3px;
+}
+
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
+
+.focus circle {
+  fill: #F1F3F3;
+  stroke: red;
+  stroke-width: 3px;
+}
+  
+.hover-line {
+  stroke: rgb(222, 145, 240);
+  stroke-width: 2px;
+  stroke-dasharray: 3,3;
+}
+.grid path,
+.grid line {
+  fill: none;
+  stroke: rgba(0, 0, 0, 0.25);
+  shape-rendering: crispEdges;
+}

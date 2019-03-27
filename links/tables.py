@@ -14,7 +14,7 @@ from .models import (
 
 class LinkTable(tables.Table):
     row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
-    link = tables.TemplateColumn('<a href="{% url "links:type-link-product-list" record.pk %}">{{ record.link }}</a>')
+    link = tables.TemplateColumn('<a href="{% url "links:type-link-product-list" record.pk %}" data-id="{{record.pk}}">{{ record.link }}</a>')
 
     class Meta:
         model = Link
@@ -28,7 +28,7 @@ class LinkTable(tables.Table):
         attrs = {
             'class': 'table table-striped table-bordered table-scroll',
         }
-        sequence = ['row_number', ]
+        sequence = ['row_number', 'link',]
         empty_text = "..."
 
     def __init__(self, *args, **kwargs):
@@ -43,6 +43,13 @@ class ProductTable(tables.Table):
     row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
     name = tables.TemplateColumn('<a href="{% url "links:type-link-inventory-list" record.pk %}">{{ record.name }}</a>')
     link = tables.TemplateColumn('<span>{{ record.link|truncatechars:40 }}</span>')
+    view = tables.TemplateColumn('''
+        <div class="btn-block" data-id="{{record.pk}}">
+            <a href="#" class="btn btn-xs" title="Edit" id="chart">
+                <i class="fa fa-eye"></i>
+            </a>
+        </div>
+    ''', orderable=False)
 
     class Meta:
         model = Product
@@ -50,9 +57,9 @@ class ProductTable(tables.Table):
             'id',
         ]
         attrs = {
-            'class': 'table table-striped table-bordered',
+            'class': 'table table-striped table-bordered table-scroll',
         }
-        sequence = ['row_number', ]
+        sequence = ['row_number', 'name', 'view']
         empty_text = "..."
 
     def __init__(self, *args, **kwargs):

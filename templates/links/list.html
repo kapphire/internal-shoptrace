@@ -3,9 +3,190 @@
 {% load render_table from django_tables2 %}
 
 {% block content %}
+    <div id="product-chart"></div>
     {% render_table table %}
 {% endblock %}
 
 {% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('table td a#chart').on('click', function() {
+            var id = $(this).parent().data('id');
+            $.ajax({
+                type: "POST",
+                url: "/link/product/",
+                data: {
+                    'id': id
+                },
+                success: function(res){
+                    drawChart(res);
+                }
+            });
+        })
+    });
+    
+    const drawChart = (res) => {
+        console.log(res)
+        $('#product-chart').children().remove();
+        var margin = {top: 20, right: 20, bottom: 50, left: 70},
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
 
+        // parse the date / time
+        var parseTime = d3.timeParse("%Y-%m-%d %H:%M")
+            bisectDate = d3.bisector(function(d) { return d.Date; }).left;
+
+        // set the ranges
+        var x = d3.scaleTime().range([0, width]);
+        var y = d3.scaleLinear().range([height, 0]);
+        // define the line
+        var line = d3.line()
+            .x(function(d) { return x(d.Date); })
+            .y(function(d) { return y(d.Quantity); });
+        // var g = svg.append("g")
+        //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        // append the svg obgect to the body of the page
+        // appends a 'group' element to 'svg'
+        // moves the 'group' element to the top left margin
+        var svg = d3.select("#product-chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
+
+        // gridlines in x axis function
+        function make_x_gridlines() {		
+            return d3.axisBottom(x)
+                .ticks(5)
+        }
+
+        // gridlines in y axis function
+        function make_y_gridlines() {		
+            return d3.axisLeft(y)
+                .ticks(5)
+        }
+
+        function draw(res) {
+            for (var product_name in res) {
+                var data = res[product_name];
+            }
+            // format the data
+            data.forEach(function(d) {
+                d.Date = parseTime(d.Date);
+                d.Quantity = d.Quantity
+            });
+
+            // sort years ascending
+            data.sort(function(a, b){
+                return a["Date"]-b["Date"];
+            })
+
+            // Scale the range of the data
+            x.domain(d3.extent(data, function(d) { return d.Date; }));
+            y.domain([0, d3.max(data, function(d) {
+                return Math.max(d.Quantity); })]);
+            // add the X gridlines
+            svg.append("g")			
+                .attr("class", "grid")
+                .attr("transform", "translate(0," + height + ")")
+                .call(make_x_gridlines()
+                    .tickSize(-height)
+                    .tickFormat("")
+                )
+
+            // add the Y gridlines
+            svg.append("g")			
+                .attr("class", "grid")
+                .call(make_y_gridlines()
+                    .tickSize(-width)
+                    .tickFormat("")
+                )
+            // Add the line path.
+            svg.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("d", line);
+            // Add the X Axis
+            svg.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x));
+            
+            // text label for the x axis
+            svg.append("text")             
+                .attr("transform",
+                        "translate(" + (width/2) + " ," + (height + margin.top + 20) + ")")
+                .style("text-anchor", "middle")
+                .text("Time")
+                .attr("fill", "red")                
+                .style("font-size", "15")
+                .style("font-weight", "bold");
+
+            // Add the Y Axis
+            svg.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y))
+
+            // text label for the y axis
+            svg.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 20 - margin.left)
+                .attr("x",0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Value")
+                .attr("fill", "red")
+                .text("Quantity")
+                .style("font-size", "15")
+                .style("font-weight", "bold");
+
+            var focus = svg.append("g")
+                .attr("class", "focus")
+                .style("display", "none");
+
+            focus.append("line")
+                .attr("class", "x-hover-line hover-line")
+                .attr("y1", 0)
+                .attr("y2", height);
+
+            focus.append("line")
+                .attr("class", "y-hover-line hover-line")
+                .attr("x1", width)
+                .attr("x2", width);
+
+            focus.append("circle")
+                .attr("r", 7.5);
+
+            focus.append("text")
+                .attr("x", 15)
+                .attr("fill", "red")
+                .attr("dy", "1.31em");
+
+            svg.append("rect")
+                .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+                .attr("class", "overlay")
+                .attr("width", width)
+                .attr("height", height)
+                .on("mouseover", function() { focus.style("display", null); })
+                .on("mouseout", function() { focus.style("display", "none"); })
+                .on("mousemove", mousemove);
+
+            function mousemove() {
+                var x0 = x.invert(d3.mouse(this)[0]),
+                    i = bisectDate(data, x0, 1),
+                    d0 = data[i - 1],
+                    d1 = data[i],
+                    d = x0 - d0.Date > d1.Date - x0 ? d1 : d0;
+                focus.attr("transform", "translate(" + x(d.Date) + "," + y(d.Quantity) + ")");
+                focus.select("text").text(function() { return d.Quantity; });
+                focus.select(".x-hover-line").attr("y2", height - y(d.Quantity));
+                focus.select(".y-hover-line").attr("x2", width + width);
+            }
+        }
+
+        draw(res)
+
+    };
+</script>
 {% endblock %}
