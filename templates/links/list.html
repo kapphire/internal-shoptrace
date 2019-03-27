@@ -85,9 +85,10 @@
 
             // Scale the range of the data
             x.domain(d3.extent(data, function(d) { return d.Date; }));
-            var minQty = d3.min(data, function(d) { return Math.max(d.Quantity); });
-            var maxQty = d3.max(data, function(d) { return Math.max(d.Quantity); })
-            var qtyDelta = minQty - maxQty;
+            var minQty = d3.min(data, function(d) { return Math.min(d.Quantity); });
+            var maxQty = d3.max(data, function(d) { return Math.max(d.Quantity); });
+
+            var qtyDelta = maxQty - minQty;
             if (qtyDelta == 0) {
                 qtyDelta = 10
             }
