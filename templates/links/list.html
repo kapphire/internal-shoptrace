@@ -4,6 +4,7 @@
 
 {% block content %}
     <div id="product-chart"></div>
+    <hr>
     {% render_table table %}
 {% endblock %}
 
@@ -30,7 +31,7 @@
         $('#product-chart').children().remove();
         var margin = {top: 20, right: 20, bottom: 50, left: 70},
             width = 960 - margin.left - margin.right,
-            height = 500 - margin.top - margin.bottom;
+            height = 400 - margin.top - margin.bottom;
 
         // parse the date / time
         var parseTime = d3.timeParse("%Y-%m-%d %H:%M")
@@ -58,7 +59,7 @@
         // gridlines in x axis function
         function make_x_gridlines() {		
             return d3.axisBottom(x)
-                .ticks(35)
+                .ticks(40)
         }
 
         // gridlines in y axis function
@@ -84,8 +85,13 @@
 
             // Scale the range of the data
             x.domain(d3.extent(data, function(d) { return d.Date; }));
-            y.domain([0, d3.max(data, function(d) {
-                return Math.max(d.Quantity) + Math.max(d.Quantity) / 3; })]);
+            var minQty = d3.min(data, function(d) { return Math.max(d.Quantity); });
+            var maxQty = d3.max(data, function(d) { return Math.max(d.Quantity); })
+            var qtyDelta = minQty - maxQty;
+            if (qtyDelta == 0) {
+                qtyDelta = 10
+            }
+            y.domain([minQty - qtyDelta, maxQty + qtyDelta]);
             // add the X gridlines
             svg.append("g")			
                 .attr("class", "grid")
@@ -131,7 +137,7 @@
             // text label for the y axis
             svg.append("text")
                 .attr("transform", "rotate(-90)")
-                .attr("y", 20 - margin.left)
+                .attr("y", 0 - margin.left)
                 .attr("x",0 - (height / 2))
                 .attr("dy", "1em")
                 .style("text-anchor", "middle")
