@@ -56,7 +56,7 @@ body {
 }
 
 .focus circle {
-  fill: #F1F3F3;
+  fill: rgb(248, 250, 250);
   stroke: red;
   stroke-width: 3px;
 }
@@ -69,6 +69,6 @@ body {
 .grid path,
 .grid line {
   fill: none;
-  stroke: rgba(0, 0, 0, 0.25);
+  stroke: #e6e5e5;
   shape-rendering: crispEdges;
 }
