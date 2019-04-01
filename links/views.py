@@ -158,6 +158,33 @@ class GetPeriodLinkView(FormView):
         return super().form_valid(form)
 
 
+class MovingProductListView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = ProductTable
+    
+    def get_queryset(self):
+        targets = list()
+        first_qty = 0
+        products = Product.objects.all()
+        for product in products:
+            if product.identity == 14996761772098:
+                print(product, '===========')
+            inventories = product.inventory_set.all()
+            for idx, inventory in enumerate(inventories):
+                if idx == 0:
+                    first_qty = inventory.qty
+                if first_qty != inventory.qty:
+                    targets.append(product.pk)
+                    break
+        products = products.filter(pk__in=targets)
+        return products
+        # pk = self.kwargs.get('pk')
+        # link = get_object_or_404(Link, pk=pk)
+        # if not link.product_set.all():
+        #     return Product.objects.none()
+        # return link.product_set.all()
+
+
 @csrf_exempt
 def ProductInventory(request):
     response = dict()
