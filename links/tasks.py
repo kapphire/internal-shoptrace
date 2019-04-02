@@ -66,7 +66,7 @@ def task_get_inventory_from_type(self, pk):
     for link in record.link_set.all():
         reg += 1
         if not reg % 4:
-            time.sleep(8)
+            time.sleep(15)
         link.state = dict(PROGRESS_TYPE)['progress']
         link.save()
         current_app.send_task(

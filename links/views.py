@@ -176,11 +176,6 @@ class MovingProductListView(SingleTableView):
                     break
         products = products.filter(pk__in=targets)
         return products
-        # pk = self.kwargs.get('pk')
-        # link = get_object_or_404(Link, pk=pk)
-        # if not link.product_set.all():
-        #     return Product.objects.none()
-        # return link.product_set.all()
 
 
 @csrf_exempt
