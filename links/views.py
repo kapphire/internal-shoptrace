@@ -167,8 +167,6 @@ class MovingProductListView(SingleTableView):
         first_qty = 0
         products = Product.objects.all()
         for product in products:
-            if product.identity == 14996761772098:
-                print(product, '===========')
             inventories = product.inventory_set.all()
             for idx, inventory in enumerate(inventories):
                 if idx == 0:

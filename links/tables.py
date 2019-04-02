@@ -42,6 +42,7 @@ class LinkTable(tables.Table):
 class ProductTable(tables.Table):
     row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
     name = tables.TemplateColumn('<a href="{% url "links:type-link-inventory-list" record.pk %}">{{ record.name }}</a>')
+    pub = tables.Column(empty_values=(), verbose_name='PUB', orderable=False)
     link = tables.TemplateColumn('<span>{{ record.link|truncatechars:40 }}</span>')
     view = tables.TemplateColumn('''
         <div class="btn-block" data-id="{{record.pk}}">
@@ -55,11 +56,13 @@ class ProductTable(tables.Table):
         model = Product
         exclude = [
             'id',
+            'identity',
+            'updated',
         ]
         attrs = {
             'class': 'table table-striped table-bordered table-scroll',
         }
-        sequence = ['row_number', 'name', 'view']
+        sequence = ['row_number', 'name', 'view', 'pub', ]
         empty_text = "..."
 
     def __init__(self, *args, **kwargs):
@@ -68,6 +71,9 @@ class ProductTable(tables.Table):
 
     def render_row_number(self):
         return '%d' % (next(self.counter) + 1)
+
+    def render_pub(self, record):
+        return f'{record.link.pub}'
 
 
 class InventoryTable(tables.Table):

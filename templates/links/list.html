@@ -3,6 +3,9 @@
 {% load render_table from django_tables2 %}
 
 {% block content %}
+    <div class="row justify-content-center align-items-center">
+        <h3 id="product_name"></h3>
+    </div>
     <div id="product-chart"></div>
     <hr>
     {% render_table table %}
@@ -27,7 +30,6 @@
     });
     
     const drawChart = (res) => {
-        console.log(res)
         $('#product-chart').children().remove();
         var margin = {top: 20, right: 20, bottom: 50, left: 70},
             width = 960 - margin.left - margin.right,
@@ -71,6 +73,7 @@
         function draw(res) {
             for (var product_name in res) {
                 var data = res[product_name];
+                $('#product_name').text(product_name);
             }
             // format the data
             data.forEach(function(d) {
@@ -94,21 +97,21 @@
             }
             y.domain([minQty - qtyDelta, maxQty + qtyDelta]);
             // add the X gridlines
-            svg.append("g")			
-                .attr("class", "grid")
-                .attr("transform", "translate(0," + height + ")")
-                .call(make_x_gridlines()
-                    .tickSize(-height)
-                    .tickFormat("")
-                )
+            // svg.append("g")			
+            //     .attr("class", "grid")
+            //     .attr("transform", "translate(0," + height + ")")
+            //     .call(make_x_gridlines()
+            //         .tickSize(-height)
+            //         .tickFormat("")
+            //     )
 
             // add the Y gridlines
-            svg.append("g")			
-                .attr("class", "grid")
-                .call(make_y_gridlines()
-                    .tickSize(-width)
-                    .tickFormat("")
-                )
+            // svg.append("g")			
+            //     .attr("class", "grid")
+            //     .call(make_y_gridlines()
+            //         .tickSize(-width)
+            //         .tickFormat("")
+            //     )
             // Add the line path.
             svg.append("path")
                 .datum(data)
