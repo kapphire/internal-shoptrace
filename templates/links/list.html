@@ -4,10 +4,11 @@
 
 {% block content %}
     <div class="row justify-content-center align-items-center">
-        <h3 id="product_name"></h3>
+        <br>
+        <h3 style="color: #6200ee" id="product_name"></h3>
     </div>
     <div id="product-chart"></div>
-    <hr>
+    <br>
     {% render_table table %}
 {% endblock %}
 
@@ -31,7 +32,7 @@
     
     const drawChart = (res) => {
         $('#product-chart').children().remove();
-        var margin = {top: 20, right: 20, bottom: 50, left: 70},
+        var margin = {top: 20, right: 20, bottom: 100, left: 70},
             width = 960 - margin.left - margin.right,
             height = 400 - margin.top - margin.bottom;
 
@@ -46,8 +47,6 @@
         var line = d3.line()
             .x(function(d) { return x(d.Date); })
             .y(function(d) { return y(d.Quantity); });
-        // var g = svg.append("g")
-        //     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
         // append the svg obgect to the body of the page
         // appends a 'group' element to 'svg'
         // moves the 'group' element to the top left margin
@@ -58,19 +57,7 @@
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
 
-        // gridlines in x axis function
-        function make_x_gridlines() {		
-            return d3.axisBottom(x)
-                .ticks(40)
-        }
-
-        // gridlines in y axis function
-        function make_y_gridlines() {		
-            return d3.axisLeft(y)
-                .ticks(15)
-        }
-
-        function draw(res) {
+       function draw(res) {
             for (var product_name in res) {
                 var data = res[product_name];
                 $('#product_name').text(product_name);
@@ -87,7 +74,7 @@
             })
 
             // Scale the range of the data
-            x.domain(d3.extent(data, function(d) { return d.Date; }));
+            x.domain(d3.extent(data, function(d) { return d.Date; })).nice();
             var minQty = d3.min(data, function(d) { return Math.min(d.Quantity); });
             var maxQty = d3.max(data, function(d) { return Math.max(d.Quantity); });
 
@@ -96,35 +83,34 @@
                 qtyDelta = 10
             }
             y.domain([minQty - qtyDelta, maxQty + qtyDelta]);
-            // add the X gridlines
-            // svg.append("g")			
-            //     .attr("class", "grid")
-            //     .attr("transform", "translate(0," + height + ")")
-            //     .call(make_x_gridlines()
-            //         .tickSize(-height)
-            //         .tickFormat("")
-            //     )
-
-            // add the Y gridlines
-            // svg.append("g")			
-            //     .attr("class", "grid")
-            //     .call(make_y_gridlines()
-            //         .tickSize(-width)
-            //         .tickFormat("")
-            //     )
             // Add the line path.
-            svg.append("path")
-                .datum(data)
-                .attr("class", "line")
-                .attr("d", line);
+            // svg.append("path")
+            //     .datum(data)
+            //     .attr("class", "line")
+            //     .attr("d", line);
+            svg.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return x(d.Date); })
+                .attr("width", 5)
+                .attr("y", function(d) { return y(d.Quantity); })
+                .attr("height", function(d) { return height - y(d.Quantity); });
+
             // Add the X Axis
             svg.append("g")
                 .attr("class", "axis axis--x")
                 .attr("transform", "translate(0," + height + ")")
-                .call(d3.axisBottom(x));
+                .call(d3.axisBottom(x)
+                .tickFormat(d3.timeFormat("%Y-%m-%d %H:%M")))
+                .selectAll("text")	
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("transform", "rotate(-65)");
             
             // text label for the x axis
-            svg.append("text")             
+            svg.append("text")
                 .attr("transform",
                         "translate(" + (width/2) + " ," + (height + margin.top + 20) + ")")
                 .style("text-anchor", "middle")

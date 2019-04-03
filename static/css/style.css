@@ -72,3 +72,5 @@ body {
   stroke: #e6e5e5;
   shape-rendering: crispEdges;
 }
+
+.bar { fill: steelblue; }
