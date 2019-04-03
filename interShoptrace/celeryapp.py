@@ -20,8 +20,8 @@ app.conf.beat_schedule = {
     },
     'fetch_link_from_firebase': {
         'task': 'links.tasks.task_fetch_link_from_firebase',
-        'schedule': 21100.0,
-        'options': {'queue': 'inventory', 'expires': 21000.0}
+        'schedule': 21600.0,
+        'options': {'queue': 'inventory', 'expires': 10800.0}
     },
     # 'test_scheduler': {
     #     'task': 'links.tasks.task_test_scheduler',
