@@ -170,3 +170,34 @@ class TypeLinkRecordTable(tables.Table):
 
     def render_row_number(self):
         return '%d' % (next(self.counter) + 1)
+
+
+class CommaFeedLinkTable(tables.Table):
+    row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
+    link = tables.TemplateColumn('<a href="{% url "links:type-link-product-list" record.pk %}" data-id="{{record.pk}}">{{ record.link }}</a>')
+
+    class Meta:
+        model = Link
+        exclude = [
+            'id',
+            'key',
+            'sub_key',
+            'created',
+            'updated',
+            'pub',
+            'insert',
+            'state',
+            'deprecated',
+        ]
+        attrs = {
+            'class': 'table table-striped table-bordered',
+        }
+        sequence = ['row_number', 'link',]
+        empty_text = "..."
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.counter = itertools.count()
+
+    def render_row_number(self):
+        return '%d' % (next(self.counter) + 1)

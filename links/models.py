@@ -4,21 +4,26 @@ from django.db import models
 class Link(models.Model):
     INSERT = 'insert'
     FETCH = 'fetch'
+    COMMAFEED = 'commafeed'
 
     LINK_TYPE = (
         (INSERT, INSERT),
         (FETCH, FETCH),
+        (COMMAFEED, COMMAFEED),
     )
 
     link = models.CharField(max_length=2000, unique=True, db_index=True)
     key = models.CharField(blank=True, null=True, max_length=50)
     sub_key = models.CharField(blank=True, null=True, max_length=50)
     pub = models.CharField(blank=True, null=True, max_length=50)
+
     link_type = models.CharField(max_length=20, choices=LINK_TYPE)
-    
+    deprecated = models.BooleanField(default=False)
+    state = models.CharField(max_length=10, blank=True, null=True)
+
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    state = models.CharField(max_length=10, blank=True, null=True)
+
     insert = models.ForeignKey('links.TypeLinkRecord', on_delete=models.CASCADE, blank=True, null=True)
 
     def __str__(self):

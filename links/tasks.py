@@ -1,5 +1,8 @@
 from __future__ import absolute_import, unicode_literals
 import time
+import json
+import requests
+import xmltodict
 import pyrebase
 from dateutil.parser import parse
 from celery import current_app, shared_task
@@ -40,7 +43,7 @@ def task_get_inventory(self, pk, record_pk, model):
     record = MODEL_MAPPING[model].objects.get(pk=record_pk)
     products = parse_product(link.link)
     for product in products:
-        qs = Product.objects.filter(identity=product['identity'])
+        qs = link.product_set.all().filter(identity=product['identity'])
         if not qs.exists():
             obj = Product.objects.create(
                 name=product['name'],
@@ -99,7 +102,7 @@ def task_start_get_inventory(self):
         )
         return False
 
-    links = Link.objects.all()
+    links = Link.objects.exclude(link_type='commafeed')
     links.update(state=dict(PROGRESS_TYPE)['progress'])
     reg = 0
     for link in links:
@@ -148,7 +151,7 @@ def task_fetch_link_from_firebase(self):
             except ValueError:
                 continue
 
-    Link.objects.all().exclude(link__in=unis).delete()
+    Link.objects.filter(link_type='fetch').exclude(link__in=unis).update(deprecated=True)
     ctn = 0
     for link in links:
         try:
@@ -167,11 +170,70 @@ def task_fetch_link_from_firebase(self):
     )
 
 
-# @shared_task(bind=True)
-# def task_test_scheduler(self):
-#     pass
-    
+@shared_task(bind=True)
+def task_fetch_link_from_commafeed(self):
+    Link.objects.filter(link_type='commafeed').update(deprecated=True)
+    record = SchedulerRecord.objects.create(name='Fetch link from CommaFeed')
 
-# @shared_task(bind=True)
-# def task_checker(self):
-#     pass
+    url = 'https://www.commafeed.com/rest/category/get'
+    sites = json.loads(requests.get(url, auth=("Producthunter", "hamham11")).text)['feeds']
+    cnt = 0
+    
+    for site in sites:
+        try:
+            feed = site['feedUrl']
+            feed_xml = xmltodict.parse(requests.get(feed).text)
+            for key, value in feed_xml.items():
+                entries = value['entry']
+                for entry in entries:
+                    cnt += 1
+                    updated = parse(entry['updated']).replace(tzinfo=None)
+                    timedelta = timezone.now().replace(tzinfo=None) - updated
+
+                    if timedelta.days >= 1:
+                        continue
+                    try:
+                        link = entry['link']['@href']
+                        products = parse_product(link)
+                        time.sleep(5)
+
+                        if not products:
+                            continue
+
+                        qs_link = Link.objects.filter(link_type='commafeed').filter(link=link)
+                        if not qs_link.exists():
+                            cnt += 1
+                            link_obj = Link.objects.create(link=link, link_type='commafeed')
+                        else:
+                            link_obj = qs_link.first()
+                            link_obj.deprecated = False
+                            link_obj.save()
+
+                        for product in products:
+                            identity = product.get('identity')
+                            if not identity:
+                                continue
+                            qs = link_obj.product_set.all().filter(identity=product['identity'])
+                            if not qs.exists():
+                                prod_obj = Product.objects.create(
+                                    name=product.get('name'),
+                                    vendor=product.get('vendor'),
+                                    identity=product.get('identity'),
+                                    link=link_obj,
+                                )
+                            else:
+                                prod_obj = qs.first()
+                            try:
+                                inventory = Inventory.objects.create(qty=product['quantity'], product=prod_obj)
+                            except Exception as e:
+                                continue
+                    except Exception as e:
+                        continue
+        except Exception as e:
+            continue
+    notify.send(
+        sender=record,
+        recipient=user,
+        verb=f'</b>{cnt}</b> Links are added from CommaFeed',
+        description=f'</b>{cnt}</b> Links are added from CommaFeed',
+    )

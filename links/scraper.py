@@ -65,7 +65,7 @@ def get_variants(link):
     return idquants
 
 # link = "https://www.vivehealth.com/products/memory-foam-mattress-topper"
-link = "https://runspree.com/products/dvr-car-dashboard-camera-full-1080p-hd"
+link = "https://hotsaletools.com/products/tool-33"
 
 result = get_variants(link)
 print(result)

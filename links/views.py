@@ -24,6 +24,7 @@ from .tables import (
     ScraperRecordTable,
     SchedulerRecordTable,
     TypeLinkRecordTable,
+    CommaFeedLinkTable,
 )
 
 class AllLinkListView(SingleTableView):
@@ -39,7 +40,15 @@ class TypeLinkListView(SingleTableView):
     table_class = LinkTable
 
     def get_queryset(self):
-        return Link.objects.filter(link_type='insert')
+        return Link.objects.filter(link_type='insert').filter(deprecated=False)
+
+
+class CommaFeedListView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = CommaFeedLinkTable
+
+    def get_queryset(self):
+        return Link.objects.filter(link_type='commafeed').filter(deprecated=False)
 
 
 class TypeLinkHistoryListView(SingleTableView):
@@ -67,7 +76,7 @@ class PeriodLinkListView(SingleTableView):
     table_class = LinkTable
 
     def get_queryset(self):
-        return Link.objects.filter(link_type='fetch')
+        return Link.objects.filter(link_type='fetch').filter(deprecated=False)
 
 
 class ProductListView(SingleTableView):
@@ -165,7 +174,7 @@ class MovingProductListView(SingleTableView):
     def get_queryset(self):
         targets = list()
         first_qty = 0
-        products = Product.objects.all()
+        products = Product.objects.filter(link__deprecated=False)
         for product in products:
             inventories = product.inventory_set.all()
             for idx, inventory in enumerate(inventories):
