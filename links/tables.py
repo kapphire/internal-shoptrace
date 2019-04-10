@@ -43,7 +43,8 @@ class ProductTable(tables.Table):
     row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
     name = tables.TemplateColumn('<a href="{% url "links:type-link-inventory-list" record.pk %}">{{ record.name }}</a>')
     pub = tables.Column(empty_values=(), verbose_name='PUB', orderable=False)
-    link = tables.TemplateColumn('<span>{{ record.link|truncatechars:40 }}</span>')
+    # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link|truncatechars:40 }}</a>')
+    link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link }}</a>')
     view = tables.TemplateColumn('''
         <div class="btn-block" data-id="{{record.pk}}">
             <a href="#" class="btn btn-xs" title="Edit" id="chart">
