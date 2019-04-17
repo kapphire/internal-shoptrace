@@ -20,7 +20,7 @@ from links.models import Product, Inventory
 
 products = Product.objects.filter(link__deprecated=False).annotate(c=Count('inventory')).filter(c__gt=2)
 condition = reduce(operator.or_, [Q(product=s) for s in products])
-inventory = pd.DataFrame(inventory.values())
+inventory = pd.DataFrame(Inventory.objects.filter(condition).values())
 
 inventory['created'] = inventory['created'].apply(pd.to_datetime).dt.round('120min')
 
