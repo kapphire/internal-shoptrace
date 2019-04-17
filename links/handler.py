@@ -33,12 +33,14 @@ def parse_product(link):
         except AttributeError:
             product = hail_mary(soup)
 
-
     # Kieran's script
     vendor = product.get('vendor')
     try:
         varients = get_variants(resp)
+        ids = list()
         for varient in varients:
+            if varient['id'] in ids:
+                continue
             product = {
                 "name": varient['name'],
                 "identity": varient['id'],
@@ -46,7 +48,9 @@ def parse_product(link):
                 "vendor": vendor,
             }
             products.append(product)
+            ids.append(varient['id'])
         if products:
+            print(products)
             return products
     except:
         pass
