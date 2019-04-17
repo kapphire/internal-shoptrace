@@ -1,19 +1,27 @@
-import psycopg2
+# import psycopg2
+import operator
+from functools import reduce
 import pandas as pd
 import numpy as np
+from django.db.models import Count, Q
+from links.models import Product, Inventory
 
+# db_url = 'postgres://mmxccvygngqncs:c576723b7f4ce7ac03f4c9dfb9450e87459bd0a14a12768bf46a880a2aceea19@ec2-54-197-232-203.compute-1.amazonaws.com:5432/d2flo5485f32gb'
 
-db_url = 'postgres://mmxccvygngqncs:c576723b7f4ce7ac03f4c9dfb9450e87459bd0a14a12768bf46a880a2aceea19@ec2-54-197-232-203.compute-1.amazonaws.com:5432/d2flo5485f32gb'
+# conn = psycopg2.connect(db_url)
+# cur = conn.cursor()
 
-conn = psycopg2.connect(db_url)
-cur = conn.cursor()
+# tables = pd.read_sql('SELECT table_schema,table_name FROM information_schema.tables ORDER BY table_schema,table_name;', conn)
+# links = pd.read_sql('SELECT * FROM links_link', conn)
+# inventory = pd.read_sql('SELECT * FROM links_inventory', conn)
 
-tables = pd.read_sql('SELECT table_schema,table_name FROM information_schema.tables ORDER BY table_schema,table_name;', conn)
-links = pd.read_sql('SELECT * FROM links_link', conn)
-inventory = pd.read_sql('SELECT * FROM links_inventory', conn)
+# conn.close()
+# links.head()
 
-conn.close()
-links.head()
+products = Product.objects.filter(link__deprecated=False).annotate(c=Count('inventory')).filter(c__gt=2)
+condition = reduce(operator.or_, [Q(product=s) for s in products])
+inventory = pd.DataFrame(inventory.values())
+
 inventory['created'] = inventory['created'].apply(pd.to_datetime).dt.round('120min')
 
 pivoted = pd.pivot_table(inventory, values = 'qty', index = 'created', columns = 'product_id').sort_index()
@@ -56,6 +64,8 @@ def cusum(df):
     
     retseries = pd.Series(retdf.iloc[-1, :])
     print(retdf.loc[:, changed])
+    print('============================ CuSum Script')
+    print(retseries)
     
     return retseries
 
