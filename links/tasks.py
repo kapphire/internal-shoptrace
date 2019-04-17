@@ -186,7 +186,6 @@ def task_fetch_link_from_commafeed(self):
             for key, value in feed_xml.items():
                 entries = value['entry']
                 for entry in entries:
-                    cnt += 1
                     updated = parse(entry['updated']).replace(tzinfo=None)
                     timedelta = timezone.now().replace(tzinfo=None) - updated
 
