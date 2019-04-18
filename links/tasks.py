@@ -40,6 +40,8 @@ MODEL_MAPPING = {
 @shared_task(bind=True)
 def task_get_inventory(self, pk, record_pk, model):
     link = Link.objects.get(pk=pk)
+    link.state = dict(PROGRESS_TYPE)['done']
+    link.save()
     record = MODEL_MAPPING[model].objects.get(pk=record_pk)
     products = parse_product(link.link)
     for product in products:
@@ -56,8 +58,6 @@ def task_get_inventory(self, pk, record_pk, model):
         inventory = Inventory.objects.create(qty=product['quantity'], product=obj)
         if model == 'SchedulerRecord':
             record.links.add(link)
-    link.state = dict(PROGRESS_TYPE)['done']            
-    link.save()
 
 
 @shared_task(bind=True)
@@ -102,7 +102,7 @@ def task_start_get_inventory(self):
         )
         return False
 
-    links = Link.objects.exclude(link_type='commafeed')
+    links = Link.objects.exclude(link_type='commafeed').exclude(deprecated=True)
     links.update(state=dict(PROGRESS_TYPE)['progress'])
     reg = 0
     for link in links:
