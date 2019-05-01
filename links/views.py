@@ -215,7 +215,7 @@ def ProductInventory(request):
     if request.is_ajax():
         product_id = request.POST['id']
         product = Product.objects.get(pk=product_id)        
-        inventories = product.inventory_set.all()
+        inventories = product.inventory_set.order_by("created").all()
         # response['quantity'] = dict()        
         # response['quantity']['pk'] = product.pk
         # response['quantity'][product.name] = list()
