@@ -74,3 +74,6 @@ body {
 }
 
 .bar { fill: steelblue; }
+.close-icon {
+  cursor: pointer;
+}

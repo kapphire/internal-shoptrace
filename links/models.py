@@ -43,6 +43,15 @@ class Product(models.Model):
         return self.name
 
 
+class BestProduct(models.Model):
+    products = models.ManyToManyField('links.Product', blank=True)
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.created.strftime('%m/%d/%Y %H:%M')
+
+
 class Inventory(models.Model):
     qty = models.IntegerField()
     created = models.DateTimeField(auto_now_add=True)

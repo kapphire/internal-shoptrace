@@ -17,6 +17,9 @@ urlpatterns = [
     path('scraper-record/', views.ScraperRecordListView.as_view(), name='scraper-record-list'),
     path('moving-product/', views.MovingProductListView.as_view(), name='moving-product-list'),
     path('commafeed/', views.CommaFeedListView.as_view(), name='commafeed-list'),
+
+    path('best-product/', views.BestProductRecordListView.as_view(), name='best-product-record-list'),
+    path('best-product/<int:pk>', views.BestProductRecordDetailView.as_view(), name='best-product-detail'),
     
     path('product/', views.ProductInventory)
 ]

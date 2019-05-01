@@ -10,6 +10,7 @@ from .models import (
     SchedulerLookUp,
     SchedulerRecord,
     TypeLinkRecord,
+    BestProduct
 )
 
 class LinkTable(tables.Table):
@@ -76,6 +77,29 @@ class ProductTable(tables.Table):
     def render_pub(self, record):
         return f'{record.link.pub}'
 
+
+class BestProductTable(tables.Table):
+    row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
+    created = tables.TemplateColumn('<a href="{% url "links:best-product-detail" record.pk %}" data-id="{{record.pk}}">{{ record }}</a>')
+
+    class Meta:
+        model = BestProduct
+        exclude = [
+            'id',
+            'updated',
+        ]
+        attrs = {
+            'class': 'table table-striped table-bordered',
+        }
+        sequence = ['row_number', 'created',]
+        empty_text = "..."
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.counter = itertools.count()
+
+    def render_row_number(self):
+        return '%d' % (next(self.counter) + 1)
 
 class InventoryTable(tables.Table):
     row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)

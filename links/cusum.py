@@ -37,33 +37,30 @@ def relchange(col):
 
 
 def cusum(df):
-    changes = df.apply(getchange)
-    
-    meanchange = changes.replace(0, np.nan).mean(axis = 1, skipna = True).fillna(0)
-    stdchange = changes.replace(0, np.nan).std(axis = 1, skipna = True).replace(0, np.nan).fillna(1)
-    
-    normed_change = changes.apply(lambda x:(x - meanchange[x.name])/stdchange[x.name], axis = 1)
-    # print("NORMED:")
-    # print(normed_change[changed])
-    # print()
-    
-    normed_change = normed_change * (normed_change < 0)
-    # print("NORMED CLIPPED:")
-    # print(normed_change[changed])
-    retdf = normed_change.apply(relchange)
-    
-    retseries = pd.Series(retdf.iloc[-1, :])
-    # print(retdf.loc[:, changed])
-    # print('============================ CuSum Script')
-    # print(retseries)
-    
-    return retseries
+   changes = df.apply(getchange)
+
+   meanchange = changes.replace(0, np.nan).mean(axis = 1, skipna = True).fillna(0)
+   stdchange = changes.replace(0, np.nan).std(axis = 1, skipna = True).replace(0, np.nan).fillna(1)
+
+   normed_change = changes.apply(lambda x:(x - meanchange[x.name])/stdchange[x.name], axis = 1)
+
+   normed_change = normed_change * (normed_change < 0)
+   retdf = normed_change.apply(relchange)
+
+   retseries = pd.Series(retdf.iloc[-1, :])
+   flagged = retseries[retseries < 0].index
+   return list(flagged)
+#    return retseries, flagged, df[flagged]
+
 
 def get_kieran_result():
     products = Product.objects.filter(link__deprecated=False).annotate(c=Count('inventory')).filter(c__gt=2)
+    if not products:
+        return False
     condition = reduce(operator.or_, [Q(product=s) for s in products])
     inventory = pd.DataFrame(Inventory.objects.filter(condition).values())
     inventory['created'] = inventory['created'].apply(pd.to_datetime).dt.round('120min')
-    pivoted = pd.pivot_table(inventory, values = 'qty', index = 'created', columns = 'product_id').sort_index()
+    # pivoted = pd.pivot_table(inventory, values = 'qty', index = 'created', columns = 'product_id').sort_index()
+    pivoted = pd.pivot_table(inventory, values = 'qty', index = 'created', columns = 'product_id').sort_index().fillna(method = 'ffill')
     changed = pivoted.describe().transpose().query('std != 0').index
-    return cusum(pivoted[changed]).sort_values()
+    return cusum(pivoted[changed])

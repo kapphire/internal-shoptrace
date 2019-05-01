@@ -16,6 +16,7 @@ from .models import (
     SchedulerLookUp,
     SchedulerRecord,
     TypeLinkRecord,
+    BestProduct,
 )
 from .tables import (
     LinkTable,
@@ -25,6 +26,7 @@ from .tables import (
     SchedulerRecordTable,
     TypeLinkRecordTable,
     CommaFeedLinkTable,
+    BestProductTable,
 )
 
 class AllLinkListView(SingleTableView):
@@ -32,7 +34,7 @@ class AllLinkListView(SingleTableView):
     table_class = LinkTable
 
     def get_queryset(self):
-        return Link.objects.all()
+        return Link.objects.exclude(deprecated=True)
 
 
 class TypeLinkListView(SingleTableView):
@@ -187,6 +189,26 @@ class MovingProductListView(SingleTableView):
         return products
 
 
+class BestProductRecordListView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = BestProductTable
+
+    def get_queryset(self):
+        return BestProduct.objects.all()
+
+
+class BestProductRecordDetailView(SingleTableView):
+    template_name = 'links/list.html'
+    table_class = ProductTable
+
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+        record = get_object_or_404(BestProduct, pk=pk)
+        if not record.products.all():
+            return Product.objects.none()
+        return record.products.all()
+
+
 @csrf_exempt
 def ProductInventory(request):
     response = dict()
@@ -194,11 +216,32 @@ def ProductInventory(request):
         product_id = request.POST['id']
         product = Product.objects.get(pk=product_id)        
         inventories = product.inventory_set.all()
-        response[product.name] = list()
+        # response['quantity'] = dict()        
+        # response['quantity']['pk'] = product.pk
+        # response['quantity'][product.name] = list()
+        # response['sale'] = dict()
+        # response['sale']['pk'] = product.pk
+        # response['sale'][product.name] = list()
+        response['pk'] = product.pk
+        response['quantity'] = dict()
+        response['sale'] = dict()
+        response['quantity'][product.name] = list()
+        response['sale'][product.name] = list()
+
+        qty = inventories.first().qty
         for inventory in inventories:
-            elem = dict()
-            elem['Date'] = inventory.created.strftime('%Y-%m-%d %H:%M')
-            elem['Quantity'] = inventory.qty
-            response[product.name].append(elem)
-    
+            # quantity element
+            qty_elem = dict()
+            qty_elem['Date'] = inventory.created.strftime('%Y-%m-%d %H:%M')
+            qty_elem['Quantity'] = inventory.qty
+            response['quantity'][product.name].append(qty_elem)
+            # sale element
+            # qty = inventory.qty
+            if inventory.qty < qty:
+                sale_elem = dict()
+                sale_elem['Date'] = inventory.created.strftime('%Y-%m-%d %H:%M')
+                sale_elem['Quantity'] = qty - inventory.qty
+                response['sale'][product.name].append(sale_elem)
+            qty = inventory.qty
+        print(response)
     return JsonResponse(response, safe=False)

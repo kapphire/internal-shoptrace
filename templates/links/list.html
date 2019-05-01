@@ -3,11 +3,7 @@
 {% load render_table from django_tables2 %}
 
 {% block content %}
-    <div class="row justify-content-center align-items-center">
-        <br>
-        <h3 style="color: #6200ee" id="product_name"></h3>
-    </div>
-    <div id="product-chart"></div>
+    <div id="draw-product-chart"></div>
     <br>
     {% render_table table %}
 {% endblock %}
@@ -29,12 +25,14 @@
             });
         })
     });
+    $(document).on('click', '.close-icon', function() {
+        $(this).parent('div').remove();
+    });
     
     const drawChart = (res) => {
-        $('#product-chart').children().remove();
         var margin = {top: 20, right: 20, bottom: 100, left: 70},
             width = 960 - margin.left - margin.right,
-            height = 400 - margin.top - margin.bottom;
+            height = 300 - margin.top - margin.bottom;
 
         // parse the date / time
         var parseTime = d3.timeParse("%Y-%m-%d %H:%M")
@@ -42,7 +40,9 @@
 
         // set the ranges
         var x = d3.scaleTime().range([0, width]);
+        var x1 = d3.scaleTime().range([0, width]);
         var y = d3.scaleLinear().range([height, 0]);
+        var y1 = d3.scaleLinear().range([height, 0]);
         // define the line
         var line = d3.line()
             .x(function(d) { return x(d.Date); })
@@ -50,31 +50,58 @@
         // append the svg obgect to the body of the page
         // appends a 'group' element to 'svg'
         // moves the 'group' element to the top left margin
-        var svg = d3.select("#product-chart").append("svg")
+
+        var sale = res.sale
+        var sale_ctn
+        for (var product_name in sale) {
+            var data = res.sale[product_name];
+            sale_ctn = data.length
+        }
+        $("#draw-product-chart").append(`<div id="draw-product-${res.pk}">`)
+        $(`#draw-product-${res.pk}`)
+            .append(`<div class='row justify-content-center align-items-center'><br><h3 style="color: #6200ee" id="product-name-${res.pk}"></h3>`)
+            .append('<span class="float-right clickable close-icon" data-effect="fadeOut"><i class="fa fa-times"></i></span>');
+
+        // <div class="row justify-content-center align-items-center">
+        //     <br>
+        //     <h3 style="color: #6200ee" id="product-name"></h3>
+        // </div>
+        var svg = d3.select(`#draw-product-${res.pk}`).append("svg")
             .attr("width", width + margin.left + margin.right)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform",
                 "translate(" + margin.left + "," + margin.top + ")");
+        
+        if (sale_ctn > 0) {
+            var svg1 = d3.select(`#draw-product-${res.pk}`).append("svg")
+                .attr("width", width + margin.left + margin.right)
+                .attr("height", height + margin.top + margin.bottom)
+                .append("g")
+                .attr("transform",
+                    "translate(" + margin.left + "," + margin.top + ")");            
+        }
 
-       function draw(res) {
-            for (var product_name in res) {
-                var data = res[product_name];
-                $('#product_name').text(product_name);
-            }
-            // format the data
-            data.forEach(function(d) {
+        for (var product_name in res.quantity) {
+            var data = res.quantity[product_name];
+        }
+        // format the data
+        data.forEach(function(d) {
                 d.Date = parseTime(d.Date);
                 d.Quantity = d.Quantity
             });
 
-            // sort years ascending
-            data.sort(function(a, b){
-                return a["Date"]-b["Date"];
-            })
+        // sort years ascending
+        data.sort(function(a, b){
+            return a["Date"]-b["Date"];
+        });
+
+       function draw(res) {
+            $(`#product-name-${res.pk}`).text(product_name);
 
             // Scale the range of the data
             x.domain(d3.extent(data, function(d) { return d.Date; })).nice();
+
             var minQty = d3.min(data, function(d) { return Math.min(d.Quantity); });
             var maxQty = d3.max(data, function(d) { return Math.max(d.Quantity); });
 
@@ -83,6 +110,7 @@
                 qtyDelta = 10
             }
             y.domain([minQty - qtyDelta, maxQty + qtyDelta]);
+
             // Add the line path.
             // svg.append("path")
             //     .datum(data)
@@ -182,7 +210,131 @@
             }
         }
 
+        function draw_sale(res) {
+            for (var product_name in res.sale) {
+                var data_sale = res.sale[product_name];
+                // $(`#product-name-${res.pk}-sale`).text(product_name);
+            }
+            // format the data
+            data_sale.forEach(function(d) {
+                d.Date = parseTime(d.Date);
+                d.Quantity = d.Quantity
+            });
+            // sort years ascending
+            data_sale.sort(function(a, b){
+                return a["Date"]-b["Date"];
+            });
+            // Scale the range of the data
+            x1.domain(d3.extent(data, function(d) { return d.Date; })).nice();
+
+            var maxQty_sale = d3.max(data_sale, function(d) { return Math.max(d.Quantity); });
+
+            y1.domain([0, maxQty_sale]);
+
+            // Add the line path.
+            // svg.append("path")
+            //     .datum(data)
+            //     .attr("class", "line")
+            //     .attr("d", line);
+            svg1.selectAll(".bar")
+                .data(data_sale)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", function(d) { return x1(d.Date); })
+                .attr("width", 5)
+                .attr("y", function(d) { return y1(d.Quantity); })
+                .attr("height", function(d) { return height - y1(d.Quantity); });
+
+            // Add the X Axis
+            svg1.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x1)
+                .tickFormat(d3.timeFormat("%Y-%m-%d %H:%M")))
+                .selectAll("text")	
+                .style("text-anchor", "end")
+                .attr("dx", "-.8em")
+                .attr("dy", ".15em")
+                .attr("transform", "rotate(-65)");
+            
+            // text label for the x axis
+            svg1.append("text")
+                .attr("transform",
+                        "translate(" + (width/2) + " ," + (height + margin.top + 20) + ")")
+                .style("text-anchor", "middle")
+                .text("Time")
+                .attr("fill", "#ef02db")                
+                .style("font-size", "15")
+                .style("font-weight", "bold");
+
+            // Add the Y Axis
+            svg1.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y1))
+
+            // text label for the y axis
+            svg1.append("text")
+                .attr("transform", "rotate(-90)")
+                .attr("y", 0 - margin.left)
+                .attr("x",0 - (height / 2))
+                .attr("dy", "1em")
+                .style("text-anchor", "middle")
+                .text("Value")
+                .attr("fill", "#ef02db")
+                .text("Sale")
+                .style("font-size", "15")
+                .style("font-weight", "bold");
+
+            var focus1 = svg1.append("g")
+                .attr("class", "focus")
+                .style("display", "none");
+
+            focus1.append("line")
+                .attr("class", "x-hover-line hover-line")
+                .attr("y1", 0)
+                .attr("y2", height);
+
+            focus1.append("line")
+                .attr("class", "y-hover-line hover-line")
+                .attr("x1", width)
+                .attr("x2", width);
+
+            focus1.append("circle")
+                .attr("r", 7.5);
+
+            focus1.append("text")
+                .attr("x", 15)
+                .attr("fill", "#dc3545")
+                .attr("dy", "1.5em")
+                .attr("dx", "-4em");
+
+            svg1.append("rect")
+                .attr("transform", "translate(" + margin.right + "," + margin.top + ")")
+                .attr("class", "overlay")
+                .attr("width", width)
+                .attr("height", height)
+                .on("mouseover", function() { focus1.style("display", null); })
+                .on("mouseout", function() { focus1.style("display", "none"); })
+                .on("mousemove", mousemove);
+
+            function mousemove() {
+                var x0_ = x1.invert(d3.mouse(this)[0]),
+                    i_ = bisectDate(data_sale, x0_, 1),
+                    d0_ = data_sale[i_ - 1],
+                    d1_ = data_sale[i_],
+                    d_ = x0_ - d0_.Date > d1_.Date - x0_ ? d1_ : d0_;
+                
+                focus1.attr("transform", "translate(" + x1(d_.Date) + "," + y1(d_.Quantity) + ")");
+                focus1.select("text").text(function() { return d_.Quantity; });
+                focus1.select(".x-hover-line").attr("y2", height - y1(d_.Quantity));
+                focus1.select(".y-hover-line").attr("x2", width + width);
+            }
+        }
+
         draw(res)
+        if (sale_ctn > 0) {
+            draw_sale(res)
+        }
 
     };
 </script>

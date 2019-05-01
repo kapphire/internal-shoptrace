@@ -50,7 +50,6 @@ def parse_product(link):
             products.append(product)
             ids.append(varient['id'])
         if products:
-            print(products)
             return products
     except:
         pass

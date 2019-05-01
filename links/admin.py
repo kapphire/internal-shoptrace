@@ -6,6 +6,7 @@ from .models import (
     SchedulerLookUp,
     SchedulerRecord,
     TypeLinkRecord,
+    BestProduct,
 )
 # Register your models here.
 
@@ -15,3 +16,4 @@ admin.site.register(Inventory)
 admin.site.register(SchedulerLookUp)
 admin.site.register(SchedulerRecord)
 admin.site.register(TypeLinkRecord)
+admin.site.register(BestProduct)

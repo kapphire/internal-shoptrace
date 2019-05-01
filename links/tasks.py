@@ -23,8 +23,10 @@ from links.models import (
     SchedulerRecord,
     SchedulerLookUp,
     TypeLinkRecord,
+    BestProduct,
 )
 from links.handler import parse_product
+from links.cusum import get_kieran_result
 
 PROGRESS_TYPE = (
     ('progress', 'progress'),
@@ -89,6 +91,7 @@ def task_get_inventory_from_type(self, pk):
 
 @shared_task(bind=True)
 def task_start_get_inventory(self):
+    print('get inventory task ==========================')
     todos = Link.objects.filter(state=dict(PROGRESS_TYPE)['progress'])
     record = SchedulerRecord.objects.create(name='Get inventories from link')
     model = record._meta.model.__name__
@@ -121,10 +124,12 @@ def task_start_get_inventory(self):
         verb=f'</b>{cnt}</b> Links are scraped',
         description=f'</b>{cnt}</b> Links are scraped',
     )
+    get_best_product()
 
 
 @shared_task(bind=True)
 def task_fetch_link_from_firebase(self):
+    print('firebase task ==========================')
     links = list()
     unis = list()
     firebase = pyrebase.initialize_app(settings.FIREBASE_CONFIG)
@@ -172,6 +177,7 @@ def task_fetch_link_from_firebase(self):
 
 @shared_task(bind=True)
 def task_fetch_link_from_commafeed(self):
+    print('commafeed task ==========================')
     Link.objects.filter(link_type='commafeed').update(deprecated=True)
     record = SchedulerRecord.objects.create(name='Fetch link from CommaFeed')
 
@@ -236,3 +242,10 @@ def task_fetch_link_from_commafeed(self):
         verb=f'</b>{cnt}</b> Links are added from CommaFeed',
         description=f'</b>{cnt}</b> Links are added from CommaFeed',
     )
+
+
+def get_best_product():
+    products = get_kieran_result()
+    record = BestProduct.objects.create()
+    for product in products:
+        record.products.add(Product.objects.get(pk=product))
