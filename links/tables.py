@@ -98,14 +98,13 @@ class SpecialProductTable(tables.Table):
         exclude = [
             'id',
             'pub',
-            'created',
             'identity',
             'updated',
         ]
         attrs = {
             'class': 'table table-striped table-bordered table-scroll',
         }
-        sequence = ['row_number', 'name', 'last_refreshed', 'view', ]
+        sequence = ['row_number', 'name', 'created', 'view', 'last_refreshed', ]
         empty_text = "..."
 
     def __init__(self, *args, **kwargs):
