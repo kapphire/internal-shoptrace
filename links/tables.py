@@ -1,5 +1,6 @@
 import itertools
 from django.conf import settings
+from django.utils import timezone
 
 import django_tables2 as tables
 
@@ -85,6 +86,7 @@ class SpecialProductTable(tables.Table):
     # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link|truncatechars:40 }}</a>')
     # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link }}</a>')
     last_refreshed = tables.Column(empty_values=(), verbose_name="Last Refreshed Time", orderable=False)
+    hour_6 = tables.Column(empty_values=(), verbose_name="0-6h Day to day", orderable=False)
     view = tables.TemplateColumn('''
         <div class="btn-block" data-id="{{record.pk}}">
             <a href="#" class="btn btn-xs" title="Edit" id="chart">
@@ -104,19 +106,46 @@ class SpecialProductTable(tables.Table):
         attrs = {
             'class': 'table table-striped table-bordered table-scroll',
         }
-        sequence = ['row_number', 'name', 'created', 'view', 'last_refreshed', ]
+        sequence = [
+            'row_number',
+            'name',
+            'created',
+            'view',
+            'last_refreshed',
+            'hour_6'
+        ]
         empty_text = "..."
 
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
         self.counter = itertools.count()
+        self.today = timezone.now().date()
+        self.yesterday = timezone.now() - timezone.timedelta(days=1)
+        self.before = timezone.now() - timezone.timedelta(days=2)
+
+    def get_today_inventories(self, record):
+       return record.inventory_set.filter(created__gte=self.yesterday)
+
+    def get_day_before_inventories(self, record):
+        return record.inventory_set.filter(created__gte=self.before, created__lte=self.today)
 
     def render_row_number(self):
         return '%d' % (next(self.counter) + 1)
 
+    # def render_pub(self, record):
+    #     return f'{record.link.pub}'
+
     def render_last_refreshed(self, record):
         inventory = record.inventory_set.all().last()
         return inventory.created.strftime('%m/%d/%Y %H:%M')
+
+    def render_hour_6(self, record):
+        print('================')
+        today_s = self.get_today_inventories(record)
+        yesterday_s = self.get_day_before_inventories(record)        
+        if today_s and yesterday_s and today_s[1] and today_s[0] and yesterday_s[0] and yesterday_s[1]:
+            return (today_s[1].qty - today_s[0].qty) - (yesterday_s[1].qty - yesterday_s[0].qty)
+        return 'NaN'
 
 
 class BestProductTable(tables.Table):
