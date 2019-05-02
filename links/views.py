@@ -21,6 +21,7 @@ from .models import (
 from .tables import (
     LinkTable,
     ProductTable,
+    SpecialProductTable,
     InventoryTable,
     ScraperRecordTable,
     SchedulerRecordTable,
@@ -171,7 +172,7 @@ class GetPeriodLinkView(FormView):
 
 class MovingProductListView(SingleTableView):
     template_name = 'links/list.html'
-    table_class = ProductTable
+    table_class = SpecialProductTable
     
     def get_queryset(self):
         targets = list()

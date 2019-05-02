@@ -78,6 +78,48 @@ class ProductTable(tables.Table):
         return f'{record.link.pub}'
 
 
+class SpecialProductTable(tables.Table):
+    row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
+    name = tables.TemplateColumn('<a href="{% url "links:type-link-inventory-list" record.pk %}">{{ record.name }}</a>')
+    # pub = tables.Column(empty_values=(), verbose_name='PUB', orderable=False)
+    # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link|truncatechars:40 }}</a>')
+    # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link }}</a>')
+    last_refreshed = tables.Column(empty_values=(), verbose_name="Last Refreshed Time", orderable=False)
+    view = tables.TemplateColumn('''
+        <div class="btn-block" data-id="{{record.pk}}">
+            <a href="#" class="btn btn-xs" title="Edit" id="chart">
+                <i class="fa fa-eye"></i>
+            </a>
+        </div>
+    ''', orderable=False)
+
+    class Meta:
+        model = Product
+        exclude = [
+            'id',
+            'pub',
+            'created',
+            'identity',
+            'updated',
+        ]
+        attrs = {
+            'class': 'table table-striped table-bordered table-scroll',
+        }
+        sequence = ['row_number', 'name', 'last_refreshed', 'view', ]
+        empty_text = "..."
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(**kwargs)
+        self.counter = itertools.count()
+
+    def render_row_number(self):
+        return '%d' % (next(self.counter) + 1)
+
+    def render_last_refreshed(self, record):
+        inventory = record.inventory_set.all().last()
+        return inventory.created.strftime('%m/%d/%Y %H:%M')
+
+
 class BestProductTable(tables.Table):
     row_number = tables.Column(empty_values=(), verbose_name="#", orderable=False)
     created = tables.TemplateColumn('<a href="{% url "links:best-product-detail" record.pk %}" data-id="{{record.pk}}">{{ record }}</a>')
