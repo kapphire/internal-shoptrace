@@ -86,7 +86,10 @@ class SpecialProductTable(tables.Table):
     # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link|truncatechars:40 }}</a>')
     # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link }}</a>')
     last_refreshed = tables.Column(empty_values=(), verbose_name="Last Refreshed Time", orderable=False)
-    hour_6 = tables.Column(empty_values=(), verbose_name="0-6h Day to day", orderable=False)
+    hour_6 = tables.Column(empty_values=(), verbose_name="0-6h", orderable=False)
+    hour_6_comparison = tables.Column(empty_values=(), verbose_name="6h comparison with previous day", orderable=False)
+    hour_12 = tables.Column(empty_values=(), verbose_name="0-12h", orderable=False)
+    hour_12_comparison = tables.Column(empty_values=(), verbose_name="12h comparison with previous day", orderable=False)
     view = tables.TemplateColumn('''
         <div class="btn-block" data-id="{{record.pk}}">
             <a href="#" class="btn btn-xs" title="Edit" id="chart">
@@ -100,8 +103,10 @@ class SpecialProductTable(tables.Table):
         exclude = [
             'id',
             'pub',
+            'vendor',
             'identity',
             'updated',
+            'link',
         ]
         attrs = {
             'class': 'table table-striped table-bordered table-scroll',
@@ -113,6 +118,7 @@ class SpecialProductTable(tables.Table):
             'view',
             'last_refreshed',
             'hour_6',
+            'hour_6_comparison',
         ]
         empty_text = "..."
 
@@ -128,6 +134,72 @@ class SpecialProductTable(tables.Table):
     def get_day_before_inventories(self, record):
         return record.inventory_set.filter(created__gte=self.yesterday, created__lte=self.today).order_by('created')
 
+    def get_hour_interval(self, record, start):
+        data = dict()
+        inventories = self.get_today_inventories(record)
+        if inventories.exists():
+            for i in inventories:
+                hour = i.created.hour
+                if hour >= start and hour < (start + 6):
+                    data['start'] = i
+                    continue
+                if hour >= (start + 6) and hour < (start + 12):
+                    data['end'] = i
+                    continue
+            if data.get('start') and data.get('end'):
+                sale = data['start'].qty - data['end'].qty
+                if sale >= 0:
+                    return sale
+                return 0
+        return 'NaN'
+
+    def get_hour_6(self, record):
+        return self.get_hour_interval(record, 0)
+
+    def get_hour_12(self, record):
+        interval_6 = self.get_hour_interval(record, 0)
+        interval_12 = self.get_hour_interval(record, 6)
+        if not isinstance(interval_6, int) and not isinstance(interval_12, int):
+            return 'NaN'
+        if not isinstance(interval_6, int):
+            interval_6 = 0
+        if not isinstance(interval_12, int):
+            interval_12 = 0
+        return interval_6 + interval_12
+
+    def get_day_before_hour_interval(self, record, start):
+        data = dict()
+        inventories = self.get_day_before_inventories(record)
+        if inventories.exists():
+            for i in inventories:
+                hour = i.created.hour
+                if hour >= start and hour < (start + 6):
+                    data['start'] = i
+                    continue
+                if hour >= (start + 6) and hour < (start + 12):
+                    data['end'] = i
+                    continue
+            if data.get('start') and data.get('end'):
+                sale = data['start'].qty - data['end'].qty
+                if sale > 0:
+                    return sale
+                return 0
+        return 'NaN'
+
+    def get_day_before_hour_6(self, record):
+        return self.get_day_before_hour_interval(record, 0)
+
+    def get_day_before_hour_12(self, record):
+        interval_6 = self.get_day_before_hour_interval(record, 0)
+        interval_12 = self.get_day_before_hour_interval(record, 6)
+        if not isinstance(interval_6, int) and not isinstance(interval_12, int):
+            return 'NaN'
+        if not isinstance(interval_6, int):
+            interval_6 = 0
+        if not isinstance(interval_12, int):
+            interval_12 = 0
+        return interval_6 + interval_12
+
     def render_row_number(self):
         return '%d' % (next(self.counter) + 1)
 
@@ -139,19 +211,31 @@ class SpecialProductTable(tables.Table):
         return inventory.created.strftime('%m/%d/%Y %H:%M')
 
     def render_hour_6(self, record):
-        data = dict()
-        today_s = self.get_today_inventories(record)
-        if today_s.exists():
-            for i in today_s:
-                hour = i.created.hour
-                if hour >= 0 and hour <6:
-                    data['hour_0'] = i
-                    continue
-                if hour >= 6 and hour < 12:
-                    data['hour_6'] = i
-                    continue
-            if data.get('hour_0') and data.get('hour_6'):
-                return data['hour_6'].qty - data['hour_0'].qty
+        return self.get_hour_6(record)
+
+    def render_hour_6_comparison(self, record):
+        today = self.get_hour_6(record)
+        before = self.get_day_before_hour_6(record)
+
+        if isinstance(today, int) and isinstance(before, int):
+            try:
+                return f'{(today - before) / before * 100}%'
+            except:
+                return f'{(today - before) / 1 *100}%'
+        return 'NaN'
+
+    def render_hour_12(self, record):
+        return self.get_hour_12(record)
+
+    def render_hour_12_comparison(self, record):
+        today = self.get_hour_12(record)
+        before = self.get_day_before_hour_12(record)
+
+        if isinstance(today, int) and isinstance(before, int):
+            try:
+                return f'{(today - before) / before * 100}%'
+            except:
+                return f'{(today - before) / 1 *100}%'
         return 'NaN'
 
 

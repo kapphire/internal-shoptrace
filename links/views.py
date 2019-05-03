@@ -103,7 +103,7 @@ class InventoryListView(SingleTableView):
         product = get_object_or_404(Product, pk=pk)
         if not product.inventory_set.all():
             return Inventory.objects.none()
-        return product.inventory_set.all()
+        return product.inventory_set.all().order_by('-created')
 
 
 class SchedulerRecordListView(SingleTableView):
@@ -177,7 +177,7 @@ class MovingProductListView(SingleTableView):
     def get_queryset(self):
         targets = list()
         products = Product.objects.filter(link__deprecated=False)
-        for product in products:
+        for product in products[0:100]:
             qtys = set(list(product.inventory_set.values_list('qty', flat=True)))
             if len(qtys) > 1:
                 targets.append(product.pk)
