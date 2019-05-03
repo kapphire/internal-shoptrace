@@ -173,19 +173,14 @@ class GetPeriodLinkView(FormView):
 class MovingProductListView(SingleTableView):
     template_name = 'links/list.html'
     table_class = SpecialProductTable
-    
+
     def get_queryset(self):
         targets = list()
-        first_qty = 0
         products = Product.objects.filter(link__deprecated=False)
         for product in products:
-            inventories = product.inventory_set.all()
-            for idx, inventory in enumerate(inventories):
-                if idx == 0:
-                    first_qty = inventory.qty
-                if first_qty != inventory.qty:
-                    targets.append(product.pk)
-                    break
+            qtys = set(list(product.inventory_set.values_list('qty', flat=True)))
+            if len(qtys) > 1:
+                targets.append(product.pk)
         products = products.filter(pk__in=targets)
         return products
 
@@ -244,5 +239,4 @@ def ProductInventory(request):
                 sale_elem['Quantity'] = qty - inventory.qty
                 response['sale'][product.name].append(sale_elem)
             qty = inventory.qty
-        print(response)
     return JsonResponse(response, safe=False)

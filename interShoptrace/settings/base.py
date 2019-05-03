@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 
 import os
 from kombu import Queue
+import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(
@@ -99,6 +100,11 @@ DATABASES = {
         'PORT': 5432,
     }
 }
+os.environ['DATABASE_URL'] = 'postgres://mmxccvygngqncs:c576723b7f4ce7ac03f4c9dfb9450e87459bd0a14a12768bf46a880a2aceea19@ec2-54-197-232-203.compute-1.amazonaws.com:5432/d2flo5485f32gb'
+
+if 'DATABASE_URL' in os.environ:
+    db_from_env = dj_database_url.config(conn_max_age=500)
+    DATABASES['default'].update(db_from_env)
 
 
 # Password validation

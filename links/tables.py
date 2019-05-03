@@ -86,7 +86,7 @@ class SpecialProductTable(tables.Table):
     # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link|truncatechars:40 }}</a>')
     # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link }}</a>')
     last_refreshed = tables.Column(empty_values=(), verbose_name="Last Refreshed Time", orderable=False)
-    # hour_6 = tables.Column(empty_values=(), verbose_name="0-6h Day to day", orderable=False)
+    hour_6 = tables.Column(empty_values=(), verbose_name="0-6h Day to day", orderable=False)
     view = tables.TemplateColumn('''
         <div class="btn-block" data-id="{{record.pk}}">
             <a href="#" class="btn btn-xs" title="Edit" id="chart">
@@ -112,7 +112,7 @@ class SpecialProductTable(tables.Table):
             'created',
             'view',
             'last_refreshed',
-            # 'hour_6'
+            'hour_6',
         ]
         empty_text = "..."
 
@@ -138,21 +138,21 @@ class SpecialProductTable(tables.Table):
         inventory = record.inventory_set.all().last()
         return inventory.created.strftime('%m/%d/%Y %H:%M')
 
-    # def render_hour_6(self, record):
-    #     data = dict()
-    #     today_s = self.get_today_inventories(record)
-    #     if today_s.exists():
-    #         for i in today_s:
-    #             hour = i.created.qty
-    #             if hour >= 0 and hour <6:
-    #                 data['hour_0'] = i
-    #                 continue
-    #             if hour >= 6 and hour < 12:
-    #                 data['hour_6'] = i
-    #                 continue
-    #         if data.get('hour_0') and data.get('hour_6'):
-    #             return data['hour_6'].qty - data['hour_0'].qty
-    #     return 'NaN'
+    def render_hour_6(self, record):
+        data = dict()
+        today_s = self.get_today_inventories(record)
+        if today_s.exists():
+            for i in today_s:
+                hour = i.created.hour
+                if hour >= 0 and hour <6:
+                    data['hour_0'] = i
+                    continue
+                if hour >= 6 and hour < 12:
+                    data['hour_6'] = i
+                    continue
+            if data.get('hour_0') and data.get('hour_6'):
+                return data['hour_6'].qty - data['hour_0'].qty
+        return 'NaN'
 
 
 class BestProductTable(tables.Table):
