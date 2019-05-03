@@ -196,7 +196,7 @@ class BestProductRecordListView(SingleTableView):
 
 class BestProductRecordDetailView(SingleTableView):
     template_name = 'links/list.html'
-    table_class = ProductTable
+    table_class = SpecialProductTable
 
     def get_queryset(self):
         pk = self.kwargs.get('pk')
