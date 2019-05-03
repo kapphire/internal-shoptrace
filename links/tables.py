@@ -219,9 +219,9 @@ class SpecialProductTable(tables.Table):
 
         if isinstance(today, int) and isinstance(before, int):
             try:
-                return f'{(today - before) / before * 100}%'
+                return f'{round((today - before) / before * 100, 2)}%'
             except:
-                return f'{(today - before) / 1 *100}%'
+                return f'{(today - before) / 1 * 100}%'
         return 'NaN'
 
     def render_hour_12(self, record):
@@ -233,7 +233,7 @@ class SpecialProductTable(tables.Table):
 
         if isinstance(today, int) and isinstance(before, int):
             try:
-                return f'{(today - before) / before * 100}%'
+                return f'{round((today - before) / before * 100, 2)}%'
             except:
                 return f'{(today - before) / 1 *100}%'
         return 'NaN'
