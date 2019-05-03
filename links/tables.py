@@ -90,6 +90,10 @@ class SpecialProductTable(tables.Table):
     hour_6_comparison = tables.Column(empty_values=(), verbose_name="6h comparison with previous day", orderable=False)
     hour_12 = tables.Column(empty_values=(), verbose_name="0-12h", orderable=False)
     hour_12_comparison = tables.Column(empty_values=(), verbose_name="12h comparison with previous day", orderable=False)
+    hour_18 = tables.Column(empty_values=(), verbose_name="0-18h", orderable=False)
+    hour_18_comparison = tables.Column(empty_values=(), verbose_name="18h comparison with previous day", orderable=False)
+    hour_24 = tables.Column(empty_values=(), verbose_name="0-24h", orderable=False)
+    hour_24_comparison = tables.Column(empty_values=(), verbose_name="24h comparison with previous day", orderable=False)
     view = tables.TemplateColumn('''
         <div class="btn-block" data-id="{{record.pk}}">
             <a href="#" class="btn btn-xs" title="Edit" id="chart">
@@ -157,7 +161,7 @@ class SpecialProductTable(tables.Table):
         return self.get_hour_interval(record, 0)
 
     def get_hour_12(self, record):
-        interval_6 = self.get_hour_interval(record, 0)
+        interval_6 = self.get_hour_6(record)
         interval_12 = self.get_hour_interval(record, 6)
         if not isinstance(interval_6, int) and not isinstance(interval_12, int):
             return 'NaN'
@@ -166,6 +170,28 @@ class SpecialProductTable(tables.Table):
         if not isinstance(interval_12, int):
             interval_12 = 0
         return interval_6 + interval_12
+
+    def get_hour_18(self, record):
+        interval_12 = self.get_hour_12(record)
+        interval_18 = self.get_hour_interval(record, 12)
+        if not isinstance(interval_12, int) and not isinstance(interval_18, int):
+            return 'NaN'
+        if not isinstance(interval_12, int):
+            interval_12 = 0
+        if not isinstance(interval_18, int):
+            interval_18 = 0
+        return interval_12 + interval_18
+
+    def get_hour_24(self, record):
+        interval_18 = self.get_hour_18(record)
+        interval_24 = self.get_hour_interval(record, 18)
+        if not isinstance(interval_18, int) and not isinstance(interval_24, int):
+            return 'NaN'
+        if not isinstance(interval_18, int):
+            interval_18 = 0
+        if not isinstance(interval_24, int):
+            interval_24 = 0
+        return interval_18 + interval_24
 
     def get_day_before_hour_interval(self, record, start):
         data = dict()
@@ -190,7 +216,7 @@ class SpecialProductTable(tables.Table):
         return self.get_day_before_hour_interval(record, 0)
 
     def get_day_before_hour_12(self, record):
-        interval_6 = self.get_day_before_hour_interval(record, 0)
+        interval_6 = self.get_day_before_hour_6(record)
         interval_12 = self.get_day_before_hour_interval(record, 6)
         if not isinstance(interval_6, int) and not isinstance(interval_12, int):
             return 'NaN'
@@ -199,6 +225,29 @@ class SpecialProductTable(tables.Table):
         if not isinstance(interval_12, int):
             interval_12 = 0
         return interval_6 + interval_12
+
+    def get_day_before_hour_18(self, record):
+        interval_12 = self.get_day_before_hour_12(record)
+        interval_18 = self.get_day_before_hour_interval(record, 12)
+        if not isinstance(interval_12, int) and not isinstance(interval_18, int):
+            return 'NaN'
+        if not isinstance(interval_12, int):
+            interval_12 = 0
+        if not isinstance(interval_18, int):
+            interval_18 = 0
+        return interval_12 + interval_18
+
+    def get_day_before_hour_24(self, record):
+        interval_18 = self.get_day_before_hour_18(record)
+        interval_24 = self.get_day_before_hour_interval(record, 18)
+        if not isinstance(interval_18, int) and not isinstance(interval_24, int):
+            return 'NaN'
+        if not isinstance(interval_18, int):
+            interval_18 = 0
+        if not isinstance(interval_24, int):
+            interval_24 = 0
+        return interval_18 + interval_24
+
 
     def render_row_number(self):
         return '%d' % (next(self.counter) + 1)
@@ -230,6 +279,34 @@ class SpecialProductTable(tables.Table):
     def render_hour_12_comparison(self, record):
         today = self.get_hour_12(record)
         before = self.get_day_before_hour_12(record)
+
+        if isinstance(today, int) and isinstance(before, int):
+            try:
+                return f'{round((today - before) / before * 100, 2)}%'
+            except:
+                return f'{(today - before) / 1 *100}%'
+        return 'NaN'
+
+    def render_hour_18(self, record):
+        return self.get_hour_18(record)
+
+    def render_hour_18_comparison(self, record):
+        today = self.get_hour_18(record)
+        before = self.get_day_before_hour_18(record)
+
+        if isinstance(today, int) and isinstance(before, int):
+            try:
+                return f'{round((today - before) / before * 100, 2)}%'
+            except:
+                return f'{(today - before) / 1 *100}%'
+        return 'NaN'
+
+    def render_hour_24(self, record):
+        return self.get_hour_24(record)
+
+    def render_hour_24_comparison(self, record):
+        today = self.get_hour_24(record)
+        before = self.get_day_before_hour_24(record)
 
         if isinstance(today, int) and isinstance(before, int):
             try:
