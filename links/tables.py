@@ -120,14 +120,13 @@ class SpecialProductTable(tables.Table):
         super().__init__(**kwargs)
         self.counter = itertools.count()
         self.today = timezone.now().date()
-        self.yesterday = timezone.now() - timezone.timedelta(days=1)
-        self.before = timezone.now() - timezone.timedelta(days=2)
+        self.yesterday = (timezone.now() - timezone.timedelta(days=1)).date()
 
     def get_today_inventories(self, record):
-       return record.inventory_set.filter(created__gte=self.yesterday)
+       return record.inventory_set.filter(created__gte=self.today).order_by('created')
 
     def get_day_before_inventories(self, record):
-        return record.inventory_set.filter(created__gte=self.before, created__lte=self.today)
+        return record.inventory_set.filter(created__gte=self.yesterday, created__lte=self.today).order_by('created')
 
     def render_row_number(self):
         return '%d' % (next(self.counter) + 1)
@@ -140,11 +139,19 @@ class SpecialProductTable(tables.Table):
         return inventory.created.strftime('%m/%d/%Y %H:%M')
 
     def render_hour_6(self, record):
-        print('================')
+        data = dict()
         today_s = self.get_today_inventories(record)
-        yesterday_s = self.get_day_before_inventories(record)        
-        if today_s and yesterday_s and today_s[1] and today_s[0] and yesterday_s[0] and yesterday_s[1]:
-            return (today_s[1].qty - today_s[0].qty) - (yesterday_s[1].qty - yesterday_s[0].qty)
+        if today_s.exists():
+            for i in today_s:
+                hour = i.created.qty
+                if hour >= 0 and hour <6:
+                    data['hour_0'] = i
+                    continue
+                if hour >= 6 and hour < 12:
+                    data['hour_6'] = i
+                    continue
+            if data.get('hour_0') and data.get('hour_6'):
+                return data['hour_6'].qty - data['hour_0'].qty
         return 'NaN'
 
 
