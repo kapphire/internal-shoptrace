@@ -45,11 +45,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     # My APP
     'common',
     'users',
     'links',
     # External packages
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
     'notifications',
     'django_tables2',
     'django_filters',
@@ -102,11 +106,11 @@ DATABASES = {
         'PORT': 5432,
     }
 }
-os.environ['DATABASE_URL'] = 'postgres://mmxccvygngqncs:c576723b7f4ce7ac03f4c9dfb9450e87459bd0a14a12768bf46a880a2aceea19@ec2-54-197-232-203.compute-1.amazonaws.com:5432/d2flo5485f32gb'
+# os.environ['DATABASE_URL'] = 'postgres://mmxccvygngqncs:c576723b7f4ce7ac03f4c9dfb9450e87459bd0a14a12768bf46a880a2aceea19@ec2-54-197-232-203.compute-1.amazonaws.com:5432/d2flo5485f32gb'
 
-if 'DATABASE_URL' in os.environ:
-    db_from_env = dj_database_url.config(conn_max_age=500)
-    DATABASES['default'].update(db_from_env)
+# if 'DATABASE_URL' in os.environ:
+#     db_from_env = dj_database_url.config(conn_max_age=500)
+#     DATABASES['default'].update(db_from_env)
 
 
 # Password validation
@@ -126,6 +130,13 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
+)
+
+SITE_ID = 1
 
 AUTH_USER_MODEL = 'users.ShoptraceUser'
 
@@ -158,6 +169,16 @@ STATICFILES_DIRS = (
 )
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+
+# Allauth Configurations
+ACCOUNT_AUTHENTICATED_LOGIN_REDIRECTS = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_AUTHENTICATION_METHOD = 'email'
+ACCOUNT_LOGIN_ATTEMPTS_LIMIT = 5
+ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 86400
+ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
+LOGIN_REDIRECT_URL = '/link/'
 
 # FIREBASE DATABASE CONFIGURATION
 FIREBASE_CONFIG = {

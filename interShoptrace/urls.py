@@ -23,4 +23,5 @@ urlpatterns = [
     path('', RedirectView.as_view(url=reverse_lazy('links:type-link-add'))),
     path('link/', include(('links.urls', 'links'), namespace='links')),
     path('inbox/notifications/', include(notifications.urls, namespace='notifications')),
+    path('accounts/', include('allauth.urls')),
 ]

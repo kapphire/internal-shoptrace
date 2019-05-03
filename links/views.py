@@ -1,4 +1,5 @@
 from celery import current_app
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from django.views.generic.edit import FormView
@@ -32,22 +33,23 @@ from .tables import (
     BestProductTable,
 )
 
-class AllLinkListView(SingleTableMixin, FilterView):
+class AllLinkListView(LoginRequiredMixin, SingleTableMixin, FilterView):
     template_name = 'links/list.html'
     table_class = LinkTable
     filterset_class = LinkFilter
     strict = False
 
 
-class TypeLinkListView(SingleTableView):
+class TypeLinkListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = LinkTable
 
     def get_queryset(self):
-        return Link.objects.filter(link_type='insert').filter(deprecated=False)
+        user = self.request.user
+        return Link.objects.filter(link_type='insert').filter(deprecated=False).filter(user=user)
 
 
-class CommaFeedListView(SingleTableView):
+class CommaFeedListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = CommaFeedLinkTable
 
@@ -55,7 +57,7 @@ class CommaFeedListView(SingleTableView):
         return Link.objects.filter(link_type='commafeed').filter(deprecated=False)
 
 
-class TypeLinkHistoryListView(SingleTableView):
+class TypeLinkHistoryListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = TypeLinkRecordTable
 
@@ -63,7 +65,7 @@ class TypeLinkHistoryListView(SingleTableView):
         return TypeLinkRecord.objects.all()
 
 
-class TypeLinkHistoryDetailView(SingleTableView):
+class TypeLinkHistoryDetailView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = LinkTable
 
@@ -75,7 +77,7 @@ class TypeLinkHistoryDetailView(SingleTableView):
         return record.link_set.all()
 
 
-class PeriodLinkListView(SingleTableView):
+class PeriodLinkListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = LinkTable
 
@@ -83,7 +85,7 @@ class PeriodLinkListView(SingleTableView):
         return Link.objects.filter(link_type='fetch').filter(deprecated=False)
 
 
-class ProductListView(SingleTableView):
+class ProductListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = ProductTable
 
@@ -95,7 +97,7 @@ class ProductListView(SingleTableView):
         return link.product_set.all()
 
 
-class InventoryListView(SingleTableView):
+class InventoryListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = InventoryTable
 
@@ -107,7 +109,7 @@ class InventoryListView(SingleTableView):
         return product.inventory_set.all().order_by('-created')
 
 
-class SchedulerRecordListView(SingleTableView):
+class SchedulerRecordListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = SchedulerRecordTable
 
@@ -115,7 +117,7 @@ class SchedulerRecordListView(SingleTableView):
         return SchedulerRecord.objects.all()
 
 
-class ScraperRecordListView(SingleTableView):
+class ScraperRecordListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = ScraperRecordTable
 
@@ -123,7 +125,7 @@ class ScraperRecordListView(SingleTableView):
         return SchedulerLookUp.objects.all()
 
 
-class SchedulerRecordDetailView(SingleTableView):
+class SchedulerRecordDetailView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = LinkTable
 
@@ -135,18 +137,19 @@ class SchedulerRecordDetailView(SingleTableView):
         return record.links.all()
 
 
-class LinkInsertView(FormView):
+class LinkInsertView(LoginRequiredMixin, FormView):
     template_name = 'links/link_insert.html'
     form_class = LinkInsertForm
     success_url = reverse_lazy('links:type-link-list')
 
     def form_valid(self, form):
+        user = self.request.user
         links = form.cleaned_data['links'].splitlines()
         record = TypeLinkRecord.objects.create()
 
         for link in links:
             try:
-                link = Link(link=link, link_type='insert', insert=record)
+                link = Link(link=link, link_type='insert', insert=record, user=user)
                 link.save()
             except IntegrityError:
                 continue
@@ -158,7 +161,7 @@ class LinkInsertView(FormView):
         return super().form_valid(form)
 
 
-class GetPeriodLinkView(FormView):
+class GetPeriodLinkView(LoginRequiredMixin, FormView):
     template_name = 'links/get_period_link.html'
     form_class = GetPeriodLinkForm
     success_url = reverse_lazy('links:period-link-list')
@@ -171,7 +174,7 @@ class GetPeriodLinkView(FormView):
         return super().form_valid(form)
 
 
-class MovingProductListView(SingleTableView):
+class MovingProductListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = SpecialProductTable
 
@@ -186,7 +189,7 @@ class MovingProductListView(SingleTableView):
         return products
 
 
-class BestProductRecordListView(SingleTableView):
+class BestProductRecordListView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = BestProductTable
 
@@ -194,7 +197,7 @@ class BestProductRecordListView(SingleTableView):
         return BestProduct.objects.all()
 
 
-class BestProductRecordDetailView(SingleTableView):
+class BestProductRecordDetailView(LoginRequiredMixin, SingleTableView):
     template_name = 'links/list.html'
     table_class = SpecialProductTable
 

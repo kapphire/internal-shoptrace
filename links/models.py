@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.conf import settings
 
 class Link(models.Model):
     INSERT = 'insert'
@@ -11,7 +12,7 @@ class Link(models.Model):
         (FETCH, FETCH),
         (COMMAFEED, COMMAFEED),
     )
-
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True, blank=True)
     link = models.CharField(max_length=2000, unique=True, db_index=True)
     key = models.CharField(blank=True, null=True, max_length=50)
     sub_key = models.CharField(blank=True, null=True, max_length=50)

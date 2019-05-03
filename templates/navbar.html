@@ -29,62 +29,75 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container">
         <a class="navbar-brand" href=""><h2>Internal Shoptrace</h2></a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-            <ul class="navbar-nav mr-auto">            
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'links:all-link-list' %}">All Links<span class="sr-only">(current)</span></a>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="manualNavbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manual</a>
-                    <div class="dropdown-menu" aria-labelledby="manualNavbarDropdown">
-                        <a class="dropdown-item" href="{% url 'links:type-link-add' %}">Add Link</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'links:type-link-history-list' %}">Add Link History</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'links:type-link-list' %}">Added Links</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="insightsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Insights</a>
-                    <div class="dropdown-menu" aria-labelledby="insightsDropdown">
-                        <a class="dropdown-item" href="{% url 'links:scraper-record-list' %}">Scraper Results</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'links:moving-product-list' %}">Moving Products</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'links:best-product-record-list' %}">Best Products</a>
-                    </div>
-                </li>
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="externalDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">External Data Integration</a>
-                    <div class="dropdown-menu" aria-labelledby="externalDropdown">
-                        <a class="dropdown-item" href="{% url 'links:period-link-add' %}">Firebase Fetch</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'links:period-link-list' %}">Firebase Fetched Links</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="{% url 'links:commafeed-list' %}">CommaFeed</a>
-                    </div>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'links:scheduler-record-list' %}">Scheduler Records</a>
-                </li>
-            </ul>
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <div class="dropdown">
-                        <button class="btn" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            notifications {% live_notify_badge badge_class='badge badge-secondary' %}
-                        </button>
-                        <div class="dropdown-menu notification-content" aria-labelledby="notificationButton">
-                            <a href="{% url 'notifications:unread' %}">
-                                {% live_notify_list %}
-                            </a>
+        {% if request.user.is_authenticated %}
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon">@</span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+                <ul class="navbar-nav mr-auto">            
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'links:all-link-list' %}">All Links<span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="manualNavbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Manual</a>
+                        <div class="dropdown-menu" aria-labelledby="manualNavbarDropdown">
+                            <a class="dropdown-item" href="{% url 'links:type-link-add' %}">Add Link</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'links:type-link-history-list' %}">Add Link History</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'links:type-link-list' %}">Added Links</a>
                         </div>
-                    </div>
-                </li>
-            </ul>
-        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="insightsDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Insights</a>
+                        <div class="dropdown-menu" aria-labelledby="insightsDropdown">
+                            <a class="dropdown-item" href="{% url 'links:scraper-record-list' %}">Scraper Results</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'links:moving-product-list' %}">Moving Products</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'links:best-product-record-list' %}">Best Products</a>
+                        </div>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="externalDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">External Data Integration</a>
+                        <div class="dropdown-menu" aria-labelledby="externalDropdown">
+                            <a class="dropdown-item" href="{% url 'links:period-link-add' %}">Firebase Fetch</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'links:period-link-list' %}">Firebase Fetched Links</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="{% url 'links:commafeed-list' %}">CommaFeed</a>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'links:scheduler-record-list' %}">Scheduler Records</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <div class="dropdown">
+                            <button class="btn" type="button" id="notificationButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                notifications {% live_notify_badge badge_class='badge badge-secondary' %}
+                            </button>
+                            <div class="dropdown-menu notification-content" aria-labelledby="notificationButton">
+                                <a href="{% url 'notifications:unread' %}">
+                                    {% live_notify_list %}
+                                </a>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a href="/accounts/logout/" class="nav-link">Log out</a>
+                    </li>
+                </ul>
+            </div>
+        {% else %}
+        <ul class="navbar-nav">
+            <li>
+                <a href="/accounts/login/" class="nav-link">Login</a>
+            </li>
+        </ul>
+        {% endif %}
     </div>
 </nav>
