@@ -123,6 +123,7 @@ class SpecialProductTable(tables.Table):
             'last_refreshed',
             'hour_6',
             'hour_6_comparison',
+            'link',
         ]
         empty_text = "..."
 
