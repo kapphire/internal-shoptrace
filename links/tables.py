@@ -84,7 +84,7 @@ class SpecialProductTable(tables.Table):
     name = tables.TemplateColumn('<a href="{% url "links:type-link-inventory-list" record.pk %}">{{ record.name }}</a>')
     # pub = tables.Column(empty_values=(), verbose_name='PUB', orderable=False)
     # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link|truncatechars:40 }}</a>')
-    # link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link }}</a>')
+    link = tables.TemplateColumn('<a href="{{record.link}}">{{ record.link }}</a>')
     last_refreshed = tables.Column(empty_values=(), verbose_name="Last Refreshed Time", orderable=False)
     hour_6 = tables.Column(empty_values=(), verbose_name="0-6h", orderable=False)
     hour_6_comparison = tables.Column(empty_values=(), verbose_name="6h comparison with previous day", orderable=False)
@@ -92,8 +92,8 @@ class SpecialProductTable(tables.Table):
     hour_12_comparison = tables.Column(empty_values=(), verbose_name="12h comparison with previous day", orderable=False)
     hour_18 = tables.Column(empty_values=(), verbose_name="0-18h", orderable=False)
     hour_18_comparison = tables.Column(empty_values=(), verbose_name="18h comparison with previous day", orderable=False)
-    hour_24 = tables.Column(empty_values=(), verbose_name="0-24h", orderable=False)
-    hour_24_comparison = tables.Column(empty_values=(), verbose_name="24h comparison with previous day", orderable=False)
+    # hour_24 = tables.Column(empty_values=(), verbose_name="0-24h", orderable=False)
+    # hour_24_comparison = tables.Column(empty_values=(), verbose_name="24h comparison with previous day", orderable=False)
     view = tables.TemplateColumn('''
         <div class="btn-block" data-id="{{record.pk}}">
             <a href="#" class="btn btn-xs" title="Edit" id="chart">
@@ -110,7 +110,7 @@ class SpecialProductTable(tables.Table):
             'vendor',
             'identity',
             'updated',
-            'link',
+            # 'link',
         ]
         attrs = {
             'class': 'table table-striped table-bordered table-scroll',
@@ -127,13 +127,14 @@ class SpecialProductTable(tables.Table):
         empty_text = "..."
 
     def __init__(self, *args, **kwargs):
+        self.current_parent = kwargs.pop('current_parent')
         super().__init__(**kwargs)
         self.counter = itertools.count()
-        self.today = timezone.now().date()
-        self.yesterday = (timezone.now() - timezone.timedelta(days=1)).date()
+        self.today = self.current_parent.created.date()
+        self.yesterday = (self.current_parent.created - timezone.timedelta(days=1)).date()
 
     def get_today_inventories(self, record):
-       return record.inventory_set.filter(created__gte=self.today).order_by('created')
+        return record.inventory_set.filter(created__gte=self.today).order_by('created')
 
     def get_day_before_inventories(self, record):
         return record.inventory_set.filter(created__gte=self.yesterday, created__lte=self.today).order_by('created')
@@ -264,6 +265,8 @@ class SpecialProductTable(tables.Table):
 
     def render_hour_6_comparison(self, record):
         today = self.get_hour_6(record)
+        if today == 0:
+            return '0 %'
         before = self.get_day_before_hour_6(record)
 
         if isinstance(today, int) and isinstance(before, int):
@@ -278,6 +281,8 @@ class SpecialProductTable(tables.Table):
 
     def render_hour_12_comparison(self, record):
         today = self.get_hour_12(record)
+        if today == 0:
+            return '0 %'
         before = self.get_day_before_hour_12(record)
 
         if isinstance(today, int) and isinstance(before, int):
@@ -292,6 +297,8 @@ class SpecialProductTable(tables.Table):
 
     def render_hour_18_comparison(self, record):
         today = self.get_hour_18(record)
+        if today == 0:
+            return '0 %'
         before = self.get_day_before_hour_18(record)
 
         if isinstance(today, int) and isinstance(before, int):
@@ -301,19 +308,19 @@ class SpecialProductTable(tables.Table):
                 return f'{(today - before) / 1 *100}%'
         return 'NaN'
 
-    def render_hour_24(self, record):
-        return self.get_hour_24(record)
+    # def render_hour_24(self, record):
+    #     return self.get_hour_24(record)
 
-    def render_hour_24_comparison(self, record):
-        today = self.get_hour_24(record)
-        before = self.get_day_before_hour_24(record)
+    # def render_hour_24_comparison(self, record):
+    #     today = self.get_hour_24(record)
+    #     before = self.get_day_before_hour_24(record)
 
-        if isinstance(today, int) and isinstance(before, int):
-            try:
-                return f'{round((today - before) / before * 100, 2)}%'
-            except:
-                return f'{(today - before) / 1 *100}%'
-        return 'NaN'
+    #     if isinstance(today, int) and isinstance(before, int):
+    #         try:
+    #             return f'{round((today - before) / before * 100, 2)}%'
+    #         except:
+    #             return f'{(today - before) / 1 *100}%'
+    #     return 'NaN'
 
 
 class BestProductTable(tables.Table):

@@ -194,7 +194,7 @@ class BestProductRecordListView(LoginRequiredMixin, SingleTableView):
     table_class = BestProductTable
 
     def get_queryset(self):
-        return BestProduct.objects.all()
+        return BestProduct.objects.all().order_by('-created')
 
 
 class BestProductRecordDetailView(LoginRequiredMixin, SingleTableView):
@@ -202,11 +202,17 @@ class BestProductRecordDetailView(LoginRequiredMixin, SingleTableView):
     table_class = SpecialProductTable
 
     def get_queryset(self):
-        pk = self.kwargs.get('pk')
-        record = get_object_or_404(BestProduct, pk=pk)
+        record = self.get_object()
         if not record.products.all():
             return Product.objects.none()
         return record.products.all()
+
+    def get_object(self, *args, **kwargs):
+        pk = self.kwargs.get('pk')
+        return get_object_or_404(BestProduct, pk=pk)
+
+    def get_table(self, *args, **kwargs):
+        return super().get_table(current_parent=self.get_object(), *args, **kwargs)
 
 
 @csrf_exempt
