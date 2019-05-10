@@ -180,6 +180,14 @@ ACCOUNT_LOGIN_ATTEMPTS_TIMEOUT = 86400
 ACCOUNT_LOGOUT_REDIRECT_URL = '/accounts/login/'
 LOGIN_REDIRECT_URL = '/link/'
 
+EMAIL_USE_TLS = True
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'warrior.coder999@gmail.com'
+EMAIL_HOST_PASSWORD = 'Sapphire@123'
+
+
 # FIREBASE DATABASE CONFIGURATION
 FIREBASE_CONFIG = {
     "apiKey" : 'AIzaSyCl40ugLIaQfgxRFw_7_DKaZ-_aEAQiiWU',
