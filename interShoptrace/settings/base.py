@@ -186,6 +186,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'warrior.coder999@gmail.com'
 EMAIL_HOST_PASSWORD = 'Sapphire@123'
+DEFAULT_FROM_EMAIL = 'warrior.coder999@gmail.com'
 
 
 # FIREBASE DATABASE CONFIGURATION
